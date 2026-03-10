@@ -11,10 +11,122 @@
             --neon-glow: 0 0 15px rgba(0, 217, 255, 0.4);
             --text-cyan: #a0eaff;
             --text-dim: #5c7d8a;
+            /* 闸门背景色：深绿环氧树脂 */
+            --gate-bg: #03140b; 
+            /* 闸门线条色：金色 */
+            --gate-line: #bda06d; 
         }
 
         * { box-sizing: border-box; }
 
+        /* --- 核心：进入特效（闸门与充能） --- */
+        #boot-gate {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 9999;
+            display: flex;
+            overflow: hidden; /* 用于闸门分割 */
+        }
+
+        /* 闸门的两半 */
+        .gate-half {
+            width: 50%; height: 100%;
+            background-color: var(--gate-bg);
+            /* 深绿色纹理背景 */
+            background-image: 
+                linear-gradient(rgba(189, 160, 109, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(189, 160, 109, 0.03) 1px, transparent 1px);
+            background-size: 80px 80px;
+            position: relative;
+            transition: transform 1.2s cubic-bezier(0.7, 0, 0.3, 1) 1.5s; /* 充能后延迟分割 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 左闸门向左滑，右闸门向右滑 */
+        #gate-left { transform: translateX(0); border-right: 2px solid var(--gate-line); }
+        #gate-right { transform: translateX(0); border-left: 2px solid var(--gate-line); }
+
+        #boot-gate.opened #gate-left { transform: translateX(-100%); }
+        #boot-gate.opened #gate-right { transform: translateX(100%); }
+
+        /* SVG 样式：在两扇闸门上分别对齐 */
+        .circuit-svg {
+            position: absolute;
+            top: 50%;
+            width: 150%; height: auto; /* 横跨两半区域 */
+            filter: drop-shadow(0 0 3px rgba(189, 160, 109, 0.5)); /* 金色发光 */
+        }
+
+        #gate-left .circuit-svg {
+            right: 0; /* 对齐到中间缝隙 */
+            transform: translateY(-50%) scaleX(-1); /* 镜像，让充能从左到右 */
+        }
+        #gate-right .circuit-svg {
+            left: 0; /* 对齐到中间缝隙 */
+            transform: translateY(-50%); /* 正常，让充能从右到左 */
+        }
+
+        /* 基础金丝线条样式 */
+        .pcb-trace {
+            fill: none;
+            stroke: var(--gate-line); /* 默认金色 */
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-dasharray: 1200;
+            stroke-dashoffset: 1200;
+        }
+
+        /* 金色焊盘（圆圈） */
+        .pcb-pad {
+            fill: var(--gate-bg);
+            stroke: var(--gate-line);
+            stroke-width: 2.5;
+            transition: stroke 0.3s, fill 0.3s, filter 0.3s;
+            filter: drop-shadow(0 0 3px rgba(189, 160, 109, 0.5));
+        }
+
+        /* 蓝色霓虹充能线条 */
+        .pcb-trace.charging {
+            animation: circuit-trace 4s ease-in-out forwards;
+        }
+
+        /* 蓝色激活焊盘 */
+        .pcb-pad.active {
+            stroke: var(--neon-blue); /* 变为蓝色 */
+            fill: #fff; /* 内部变为白色，增强亮度 */
+            filter: drop-shadow(0 0 10px var(--neon-blue));
+        }
+
+        /* 充能动画 */
+        @keyframes circuit-trace {
+            0% { stroke: var(--gate-line); stroke-dashoffset: 1200; }
+            10% { stroke: var(--neon-blue); } /* 开始流动时变为蓝色 */
+            100% { stroke: var(--neon-blue); stroke-dashoffset: 0; }
+        }
+
+        /* 主容器终端扫描展开动画 */
+        .container {
+            display: grid;
+            grid-template-columns: 280px 1fr 300px;
+            gap: 20px;
+            width: 100%;
+            max-width: 1400px;
+            z-index: 1;
+            opacity: 0;
+            transform: scale(1.02);
+            transition: all 1.5s cubic-bezier(0.19, 1, 0.22, 1) 2s; /* 闸门开启后扫描 */
+            clip-path: inset(50% 50% 50% 50%); /* 初始扫描状态 */
+        }
+
+        .container.loaded {
+            opacity: 1;
+            transform: scale(1);
+            clip-path: inset(0 0 0 0); /* 展开状态 */
+        }
+
+        /* --- 基础样式（赛博风） --- */
         body {
             background-color: var(--bg-dark);
             background-image: 
@@ -41,15 +153,6 @@
             z-index: 10; pointer-events: none; opacity: 0.3;
         }
 
-        .container {
-            display: grid;
-            grid-template-columns: 280px 1fr 300px;
-            gap: 20px;
-            width: 100%;
-            max-width: 1400px;
-            z-index: 1;
-        }
-
         .card {
             background: var(--panel-bg);
             border: 1px solid rgba(0, 217, 255, 0.2);
@@ -58,7 +161,6 @@
             padding: 20px;
             margin-bottom: 20px;
             position: relative;
-            transition: transform 0.3s;
         }
 
         .card::after {
@@ -69,7 +171,6 @@
             clip-path: polygon(100% 0, 100% 100%, 0 100%);
         }
 
-        /* 侧边栏样式 */
         .profile { text-align: center; padding: 20px 0; }
         .avatar-wrap {
             width: 120px; height: 120px; margin: 0 auto 15px;
@@ -85,9 +186,7 @@
         }
         .nav-link:hover { background: rgba(0, 217, 255, 0.1); border-left: 2px solid var(--neon-blue); text-shadow: 0 0 8px var(--neon-blue); }
 
-        /* 文章列表与详情切换控制 */
-        #post-detail { display: none; } /* 默认隐藏详情页 */
-
+        #post-detail { display: none; } 
         .system-msg { border-left: 4px solid var(--neon-blue); background: rgba(0, 217, 255, 0.05); padding: 15px; margin-bottom: 30px; }
         .post-title { color: var(--neon-blue); font-size: 22px; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 1px; }
         .post-meta { font-size: 12px; color: var(--text-dim); margin-bottom: 15px; }
@@ -99,27 +198,65 @@
         }
         .btn-access:hover { background: var(--neon-blue); color: var(--bg-dark); box-shadow: 0 0 15px var(--neon-blue); }
 
-        /* 详情页正文样式 */
-        .content-body { line-height: 1.8; color: #fff; font-size: 15px; }
-        .content-body h3 { color: var(--neon-blue); border-bottom: 1px solid rgba(0, 217, 255, 0.2); padding-bottom: 10px; }
-        .code-block { background: #000; padding: 15px; border: 1px dashed var(--neon-blue); font-family: monospace; color: #0f0; margin: 15px 0; }
+        .typing::after { content: "|"; animation: blink 0.7s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
 
+        .content-body { line-height: 1.8; color: #fff; font-size: 15px; }
+        .content-body h3 { color: var(--neon-blue); border-bottom: 1px solid rgba(0, 217, 255, 0.2); padding-bottom: 10px; margin-top: 25px; }
+        .code-block { background: #000; padding: 15px; border: 1px dashed var(--neon-blue); font-family: monospace; color: #0f0; margin: 15px 0; overflow-x: auto; }
         .status-dot { width: 8px; height: 8px; background: #00ff88; border-radius: 50%; display: inline-block; margin-right: 8px; box-shadow: 0 0 10px #00ff88; }
         h3.sidebar-title { font-size: 14px; border-bottom: 1px solid rgba(0, 217, 255, 0.3); padding-bottom: 8px; margin-bottom: 15px; color: var(--neon-blue); }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div id="boot-gate">
+    <div class="gate-half" id="gate-left">
+        <svg class="circuit-svg" viewBox="0 0 400 400">
+            <g class="circuit-traces">
+                <path class="pcb-trace" d="M0 20 L100 20 L150 0 L290 0" />
+                <path class="pcb-trace" d="M0 20 L100 20 L150 20 L200 20" />
+                <path class="pcb-trace" d="M0 50 L100 50 L150 100 L260 100" />
+                <path class="pcb-trace" d="M0 80 L100 80 L150 130 L230 130" />
+                <path class="pcb-trace" d="M0 110 L90 110 L140 180 L200 180" />
+                <path class="pcb-trace" d="M0 300 L150 300 L180 270 L300 270 L300 190" />
+                <path class="pcb-trace" d="M0 300 L650 300 L620 270 L500 270 L500 190" />
+            </g>
+            <g class="circuit-pads">
+                <circle class="pcb-pad pad-left" cx="200" cy="20" r="8" style="transition-delay: 0.4s;" />
+                <circle class="pcb-pad pad-left" cx="150" cy="300" r="8" style="transition-delay: 0.8s;" />
+            </g>
+        </svg>
+    </div>
+    <div class="gate-half" id="gate-right">
+        <svg class="circuit-svg" viewBox="0 0 400 400">
+            <g class="circuit-traces">
+                <path class="pcb-trace" d="M0 20 L100 20 L150 0 L390 0" />
+                <path class="pcb-trace" d="M0 50 L100 50 L150 30 L390 30" />
+                <path class="pcb-trace" d="M0 50 L100 50 L150 50 L250 50" />
+                <path class="pcb-trace" d="M0 80 L120 80 L170 130 L390 130" />
+                <path class="pcb-trace" d="M0 110 L140 110 L190 160 L390 160" />
+                <path class="pcb-trace" d="M0 300 L50 300 L80 330 L200 330 L200 330" />
+                <path class="pcb-trace" d="M0 300 L650 300 L620 270 L500 270 L500 330" />
+            </g>
+            <g class="circuit-pads">
+                <circle class="pcb-pad pad-right" cx="100" cy="50" r="8" style="transition-delay: 1.2s;" />
+                <circle class="pcb-pad pad-right" cx="150" cy="300" r="8" style="transition-delay: 1.6s;" />
+            </g>
+        </svg>
+    </div>
+</div>
+
+<div class="container" id="main-container">
     <aside>
         <div class="card profile">
             <div class="avatar-wrap">
-                <img src="https://files.catbox.moe/0v2u0s.jpg" alt="Narlea Avatar">
+                <img src="./assets/avatar.jpg" alt="Narlea Avatar">
             </div>
             <h2 style="margin: 10px 0 5px; color: var(--neon-blue);">Narlea</h2>
             <p style="font-size: 12px; color: var(--text-dim);">SYSTEM ARCHITECT / DEVELOPER</p>
             <div style="margin-top: 15px; font-size: 13px;">
-                <span>160 档案</span> | <span>6948 访问</span>
+                <span id="stat-post-count">0 档案</span> | <span id="stat-visit-count">0 访问</span>
             </div>
         </div>
         <div class="card" style="padding: 10px 0;">
@@ -136,7 +273,6 @@
                 <h2 class="post-title" style="color: #fff;">Initialize Success_</h2>
                 <p>庆祝 2026/03/09 Narlea blog 个人站正式建立。全系统模组载入完成，正在同步数字灵魂...</p>
             </div>
-
             <div class="card">
                 <div class="post-meta">DATE: 2026.03.01 / CATEGORY: DEV_WORK</div>
                 <h2 class="post-title">关于 GPU 算子优化的深度探索</h2>
@@ -148,20 +284,9 @@
         <div id="post-detail">
             <div class="card">
                 <div class="btn-access" onclick="showHome()" style="margin-bottom: 20px;"> << BACK_TO_LIST </div>
-                <h2 id="detail-title" class="post-title">文章加载中...</h2>
+                <h2 id="detail-title" class="post-title typing"></h2>
                 <div class="post-meta">ID: 0x8F2 / SECURITY: LEVEL_4</div>
-                <div class="content-body">
-                    <h3>01. 背景分析</h3>
-                    <p>在高性能计算领域，GPU 算子的优化直接决定了模型的推理速度。我们正在尝试使用 Triton 语言重写传统的 CUDA Kernel...</p>
-                    <div class="code-block">
-                        // 示例代码片段<br>
-                        @triton.jit<br>
-                        def kernel_optimization_v1(X, Y, BLOCK_SIZE: tl.constexpr):<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;pid = tl.program_id(0)<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;...
-                    </div>
-                    <h3>02. 实验结论</h3>
-                    <p>经过测试，在 H100 集群上，优化后的算子吞吐量提升了约 35.8%。</p>
+                <div id="detail-body" class="content-body">
                 </div>
             </div>
         </div>
@@ -185,10 +310,87 @@
 </div>
 
 <script>
+    // --- 统计数据同步逻辑 ---
+    function updateStats() {
+        // 1. 档案数：获取所有带 post-title 类的元素数量
+        const postTitles = document.querySelectorAll('.post-title');
+        document.getElementById('stat-post-count').innerText = `${postTitles.length} 档案`;
+
+        // 2. 访问数：模拟一个基于日期的自然增长数字
+        const baseVisit = 0;
+        const startDate = new Date('2026-03-09');
+        const today = new Date();
+        const diffDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+        const currentVisits = baseVisit + (diffDays > 0 ? diffDays * 12 : 0); // 假设每天增长12个访问
+        document.getElementById('stat-visit-count').innerText = `${currentVisits} 访问`;
+    }
+
+    // --- 特效控制逻辑 ---
+    window.onload = () => {
+        updateStats(); // 初始化统计数据
+
+        const bootGate = document.getElementById('boot-gate');
+        const mainContainer = document.getElementById('main-container');
+        const traces = document.querySelectorAll('.pcb-trace');
+        const pads = document.querySelectorAll('.pcb-pad');
+
+        // 1. 开始金丝线路充能
+        traces.forEach(trace => trace.classList.add('charging'));
+        
+        // 2. 金色焊盘变亮激活
+        pads.forEach(pad => {
+            const delay = parseFloat(pad.style.transitionDelay);
+            setTimeout(() => pad.classList.add('active'), (delay * 1000) + 200 + (Math.random()*200));
+        });
+
+        // 3. 充能完成后开启闸门
+        const chargingTime = 4000; 
+        setTimeout(() => {
+            bootGate.classList.add('opened');
+            mainContainer.classList.add('loaded');
+            setTimeout(() => { bootGate.style.display = 'none'; }, 2200);
+        }, chargingTime); 
+    };
+
+    // --- 详情页映射 ---
+    const articles = {
+        'GPU 算子优化深度探索': `
+            <h3>01. 背景分析</h3>
+            <p>在高性能计算领域，GPU 算子的优化直接决定了模型的推理速度。我们正在尝试使用 Triton 语言重写传统的 CUDA Kernel与CUDA核心对接...</p>
+            <div class="code-block">
+                @triton.jit<br>
+                def kernel_opt(X, Y, BLOCK_SIZE: tl.constexpr): ...
+            </div>
+            <h3>02. 实验结论</h3>
+            <p>优化后的算子吞吐量提升了约 35.8%。</p>
+        `
+    };
+
+    function typeWriter(text, element, speed = 50) {
+        let i = 0;
+        element.innerHTML = "> ";
+        function type() {
+            if (i < text.length) {
+                element.innerHTML += text.charAt(i);
+                i++;
+                setTimeout(type, speed);
+            }
+        }
+        type();
+    }
+
     function showDetail(title) {
         document.getElementById('post-list').style.display = 'none';
         document.getElementById('post-detail').style.display = 'block';
-        document.getElementById('detail-title').innerText = "> " + title;
+        const titleEl = document.getElementById('detail-title');
+        typeWriter(title, titleEl, 70); 
+        const bodyEl = document.getElementById('detail-body');
+        bodyEl.style.opacity = "0";
+        bodyEl.innerHTML = articles[title] || "CONTENT_NOT_FOUND";
+        setTimeout(() => {
+            bodyEl.style.transition = "opacity 1s";
+            bodyEl.style.opacity = "1";
+        }, 500);
         window.scrollTo(0, 0);
     }
 
