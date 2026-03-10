@@ -1,23 +1,203 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Narlea 的个人主页</title>
+    <title>Narlea | Digital Terminal</title>
     <style>
-        body { font-family: system-ui, sans-serif; text-align: center; padding: 60px 20px; background: #f8f9fa; color: #333; }
-        h1 { color: #2c3e50; }
-        .links a { margin: 0 15px; color: #3498db; text-decoration: none; font-size: 1.2em; }
+        :root {
+            --bg-dark: #020508;
+            --panel-bg: rgba(6, 12, 20, 0.85);
+            --neon-blue: #00d9ff;
+            --neon-glow: 0 0 15px rgba(0, 217, 255, 0.4);
+            --text-cyan: #a0eaff;
+            --text-dim: #5c7d8a;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                linear-gradient(rgba(0, 217, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 217, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            color: var(--text-cyan);
+            font-family: 'Consolas', 'Monaco', 'Microsoft YaHei', monospace;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 扫描线动画 */
+        body::before {
+            content: " ";
+            position: fixed; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            z-index: 10; pointer-events: none; opacity: 0.3;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 280px 1fr 300px;
+            gap: 20px;
+            width: 100%;
+            max-width: 1400px;
+            z-index: 1;
+        }
+
+        .card {
+            background: var(--panel-bg);
+            border: 1px solid rgba(0, 217, 255, 0.2);
+            backdrop-filter: blur(8px);
+            box-shadow: var(--neon-glow);
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            transition: transform 0.3s;
+        }
+
+        .card::after {
+            content: "";
+            position: absolute; bottom: -1px; right: -1px;
+            width: 20px; height: 20px;
+            background: linear-gradient(135deg, transparent 50%, var(--neon-blue) 50%);
+            clip-path: polygon(100% 0, 100% 100%, 0 100%);
+        }
+
+        /* 侧边栏样式 */
+        .profile { text-align: center; padding: 20px 0; }
+        .avatar-wrap {
+            width: 120px; height: 120px; margin: 0 auto 15px;
+            border: 2px solid var(--neon-blue); padding: 5px; border-radius: 50%;
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.2); overflow: hidden;
+        }
+        .avatar-wrap img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+
+        .nav-link {
+            color: var(--text-cyan); text-decoration: none; display: block;
+            padding: 12px; margin: 5px 0; border-left: 2px solid transparent;
+            transition: 0.3s; font-size: 14px;
+        }
+        .nav-link:hover { background: rgba(0, 217, 255, 0.1); border-left: 2px solid var(--neon-blue); text-shadow: 0 0 8px var(--neon-blue); }
+
+        /* 文章列表与详情切换控制 */
+        #post-detail { display: none; } /* 默认隐藏详情页 */
+
+        .system-msg { border-left: 4px solid var(--neon-blue); background: rgba(0, 217, 255, 0.05); padding: 15px; margin-bottom: 30px; }
+        .post-title { color: var(--neon-blue); font-size: 22px; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 1px; }
+        .post-meta { font-size: 12px; color: var(--text-dim); margin-bottom: 15px; }
+
+        .btn-access {
+            display: inline-block; border: 1px solid var(--neon-blue); padding: 8px 18px;
+            color: var(--neon-blue); text-decoration: none; font-size: 12px;
+            transition: 0.3s; background: transparent; cursor: pointer;
+        }
+        .btn-access:hover { background: var(--neon-blue); color: var(--bg-dark); box-shadow: 0 0 15px var(--neon-blue); }
+
+        /* 详情页正文样式 */
+        .content-body { line-height: 1.8; color: #fff; font-size: 15px; }
+        .content-body h3 { color: var(--neon-blue); border-bottom: 1px solid rgba(0, 217, 255, 0.2); padding-bottom: 10px; }
+        .code-block { background: #000; padding: 15px; border: 1px dashed var(--neon-blue); font-family: monospace; color: #0f0; margin: 15px 0; }
+
+        .status-dot { width: 8px; height: 8px; background: #00ff88; border-radius: 50%; display: inline-block; margin-right: 8px; box-shadow: 0 0 10px #00ff88; }
+        h3.sidebar-title { font-size: 14px; border-bottom: 1px solid rgba(0, 217, 255, 0.3); padding-bottom: 8px; margin-bottom: 15px; color: var(--neon-blue); }
     </style>
 </head>
 <body>
-    <h1>欢迎来到 Narlea 的个人主页！</h1>
-    <p>这里是我的小天地～ 放简介、照片、链接、兴趣等。</p>
-    <div class="links">
-        <a href="https://github.com/narlea">GitHub</a>
-        <a href="mailto:your@email.com">Email</a>
-        <!-- 加更多链接，比如 LinkedIn、Instagram 等 -->
-    </div>
-    <p style="margin-top: 40px; font-size: 0.9em; color: #777;">Powered by GitHub Pages & narlea.top</p>
+
+<div class="container">
+    <aside>
+        <div class="card profile">
+            <div class="avatar-wrap">
+                <img src="https://files.catbox.moe/0v2u0s.jpg" alt="Narlea Avatar">
+            </div>
+            <h2 style="margin: 10px 0 5px; color: var(--neon-blue);">Narlea</h2>
+            <p style="font-size: 12px; color: var(--text-dim);">SYSTEM ARCHITECT / DEVELOPER</p>
+            <div style="margin-top: 15px; font-size: 13px;">
+                <span>160 档案</span> | <span>6948 访问</span>
+            </div>
+        </div>
+        <div class="card" style="padding: 10px 0;">
+            <a href="javascript:void(0)" onclick="showHome()" class="nav-link">>> [ 主页 ] ROOT_HOME</a>
+            <a href="#" class="nav-link">>> [ 工具 ] TOOL_KIT</a>
+            <a href="#" class="nav-link">>> [ 归档 ] DATA_LOGS</a>
+            <a href="#" class="nav-link">>> [ 关于 ] IDENTITY_INFO</a>
+        </div>
+    </aside>
+
+    <main id="main-content">
+        <div id="post-list">
+            <div class="card system-msg">
+                <h2 class="post-title" style="color: #fff;">Initialize Success_</h2>
+                <p>庆祝 2026/03/09 Narlea blog 个人站正式建立。全系统模组载入完成，正在同步数字灵魂...</p>
+            </div>
+
+            <div class="card">
+                <div class="post-meta">DATE: 2026.03.01 / CATEGORY: DEV_WORK</div>
+                <h2 class="post-title">关于 GPU 算子优化的深度探索</h2>
+                <p>正在记录关于 Triton Kernel 与 CUDA 核心的高效对接实验报告...</p>
+                <div class="btn-access" onclick="showDetail('GPU 算子优化深度探索')">ACCESS_DATA_</div>
+            </div>
+        </div>
+
+        <div id="post-detail">
+            <div class="card">
+                <div class="btn-access" onclick="showHome()" style="margin-bottom: 20px;"> << BACK_TO_LIST </div>
+                <h2 id="detail-title" class="post-title">文章加载中...</h2>
+                <div class="post-meta">ID: 0x8F2 / SECURITY: LEVEL_4</div>
+                <div class="content-body">
+                    <h3>01. 背景分析</h3>
+                    <p>在高性能计算领域，GPU 算子的优化直接决定了模型的推理速度。我们正在尝试使用 Triton 语言重写传统的 CUDA Kernel...</p>
+                    <div class="code-block">
+                        // 示例代码片段<br>
+                        @triton.jit<br>
+                        def kernel_optimization_v1(X, Y, BLOCK_SIZE: tl.constexpr):<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;pid = tl.program_id(0)<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;...
+                    </div>
+                    <h3>02. 实验结论</h3>
+                    <p>经过测试，在 H100 集群上，优化后的算子吞吐量提升了约 35.8%。</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <aside>
+        <div class="card">
+            <h3 class="sidebar-title"><span class="status-dot"></span> 系统广播</h3>
+            <p style="font-size: 13px; line-height: 1.8; color: var(--text-cyan);">
+                欢迎来到 Narlea 的个人终端。本空间用于存储算法逻辑、技术心得以及对未来的观测。
+            </p>
+        </div>
+        <div class="card">
+            <h3 class="sidebar-title">分类节点</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># GPU_COMPUTING</span>
+                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># TRITON_KERNELS</span>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<script>
+    function showDetail(title) {
+        document.getElementById('post-list').style.display = 'none';
+        document.getElementById('post-detail').style.display = 'block';
+        document.getElementById('detail-title').innerText = "> " + title;
+        window.scrollTo(0, 0);
+    }
+
+    function showHome() {
+        document.getElementById('post-list').style.display = 'block';
+        document.getElementById('post-detail').style.display = 'none';
+        window.scrollTo(0, 0);
+    }
+</script>
+
 </body>
 </html>
