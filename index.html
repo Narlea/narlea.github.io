@@ -275,10 +275,16 @@
                 <p>庆祝 2026/03/09 Narlea blog 个人站正式建立。全系统模组载入完成，正在同步数字灵魂...</p>
             </div>
             <div class="card">
-                <div class="post-meta">DATE: 2026.03.01 / CATEGORY: DEV_WORK</div>
-                <h2 class="post-title">关于 GPU 算子优化的深度探索</h2>
-                <p>正在记录关于 Triton Kernel 与 CUDA 核心的高效对接实验报告...</p>
-                <div class="btn-access" onclick="showDetail('GPU 算子优化深度探索')">ACCESS_DATA_</div>
+                <div class="post-meta">DATE: 2026.03.01 / CATEGORY: CUDA</div>
+                <h2 class="post-title">CUDA的核心概念</h2>
+                <p>一份来自初学者的CUDA核心名词概念的阐述...</p>
+                <div class="btn-access" onclick="showDetail('CUDA的核心概念')">ACCESS_DATA_</div>
+            </div>
+            <div class="card">
+                <div class="post-meta">DATE: 2026.03.09 / CATEGORY: WEB_FRONTEND</div>
+                <h2 class="post-title">Personal_Blog</h2>
+                <p>一个赛博科幻风格的开源Web前端项目...</p>
+                <div class="btn-access" onclick="showDetail('Personal_Blog')">ACCESS_DATA_</div>
             </div>
         </div>
 
@@ -292,6 +298,7 @@
             </div>
         </div>
     </main>
+    
 
     <aside>
         <div class="card">
@@ -303,8 +310,17 @@
         <div class="card">
             <h3 class="sidebar-title">分类节点</h3>
             <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># GPU_COMPUTING</span>
-                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># TRITON_KERNELS</span>
+                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># WEB_FRONTEND</span>
+                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># CUDA</span>
+                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># TRITON</span>
+                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># NN</span>
+                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># PYTORCH</span>
+                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># NLP</span>
+                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># OPENCLAW</span>
+                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># TRITON</span>
+                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># MACHINE_LEARNING</span>
+                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># DBMS</span>
+                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># AGENT</span>
             </div>
         </div>
     </aside>
@@ -312,20 +328,29 @@
 
 <script>
     // --- 统计数据同步逻辑 ---
-    function updateStats() {
-        // 1. 档案数：获取所有带 post-title 类的元素数量
-        const postTitles = document.querySelectorAll('.post-title');
-        document.getElementById('stat-post-count').innerText = `${postTitles.length} 档案`;
+    function updateStats(isClick = false) {
+    // 1. 档案数：统计主列表里的标题，排除掉详情页那个
+    const allTitles = document.querySelectorAll('.post-title');
+    // 过滤掉位于 post-detail 容器内的标题
+    const listTitles = Array.from(allTitles).filter(el => !document.getElementById('post-detail').contains(el));
+    document.getElementById('stat-post-count').innerText = `${listTitles.length} 档案`;
 
-        // 2. 访问数：模拟一个基于日期的自然增长数字
-        const baseVisit = 0;
+    // 2. 访问数：持久化存储
+    let visits = localStorage.getItem('narlea_terminal_visits');
+    if (!visits) {
+        // 初始值计算：2026-03-09 至今的天数 * 12
         const startDate = new Date('2026-03-09');
-        const today = new Date();
-        const diffDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
-        const currentVisits = baseVisit + (diffDays > 0 ? diffDays * 12 : 0); // 假设每天增长12个访问
-        document.getElementById('stat-visit-count').innerText = `${currentVisits} 访问`;
+        const diffDays = Math.max(0, Math.floor((new Date() - startDate) / (1000 * 60 * 60 * 24)));
+        visits = 0 + (diffDays * 12); 
     }
 
+    if (isClick) {
+        visits = parseInt(visits) + 1;
+    }
+
+    localStorage.setItem('narlea_terminal_visits', visits);
+    document.getElementById('stat-visit-count').innerText = `${visits} 访问`;
+    }
     // --- 特效控制逻辑 ---
     window.onload = () => {
         updateStats(); // 初始化统计数据
@@ -352,20 +377,166 @@
             setTimeout(() => { bootGate.style.display = 'none'; }, 2200);
         }, chargingTime); 
     };
-
+    //  代码框
+    // <div class="code-block">
+    //  
+    // 
+    // </div>
     // --- 详情页映射 ---
     const articles = {
-        'GPU 算子优化深度探索': `
-            <h3>01. 背景分析</h3>
-            <p>在高性能计算领域，GPU 算子的优化直接决定了模型的推理速度。我们正在尝试使用 Triton 语言重写传统的 CUDA Kernel与CUDA核心对接...</p>
-            <div class="code-block">
-                @triton.jit<br>
-                def kernel_opt(X, Y, BLOCK_SIZE: tl.constexpr): ...
-            </div>
-            <h3>02. 实验结论</h3>
-            <p>优化后的算子吞吐量提升了约 35.8%。</p>
+        'CUDA的核心概念': `
+            <h3>CUDA的核心概念</h3>
+            <p>1. 主机（Host）：CPU及其内存。  </p>
+            <p>设备（Device）：GPU及其显存。  </p>
+            <p>线程（Thread）：GPU 中最小的执行单元，对应一个具体的计算任务，每个线程有唯一的 threadIdx。</p>
+            <p>2. 块（Block）：由多个线程组成。一个块内的线程可以进行逻辑同步（__syncthreads()），同一个块内的线程可以通过共享内存通信，块有唯一的 blockIdx。</p>
+            <p>网格 (Grid)：多个块组成的集合，网格是核函数启动时的顶层结构，所有块在网格中并行执行。一个 Grid 对应一次核函数（Kernel）的启动。</p>
+            <p>3. 全局内存 (Global)：所有线程 + 主机都可访问，访问速度最慢，适合存储大规模数据（如数组、矩阵）。</p>
+            <p>常量内存 (Constant)：所有线程（只读）可以访问，速度比全局快，适合存储不变的常量（如参数、配置值）。</p>
+            <p>共享内存 (Shared)：同一块内的线程可以访问，速度很快，适合存储块内线程共享数据，减少全局内存访问。</p>
+            <p>寄存器 (Register)：只有单个线程可以访问，速度最快，用于存储线程内临时变量。</p>
+        `,
+        'Personal_Blog': `
+            <h3>PROJECT_SOURCE_CODE</h3>
+            <p>开源的个人博客项目，旨在提供一个赛博科幻风格的数字空间，用于存储和分享算法逻辑、技术心得以及对未来的观测。</p>
+            <p>正在建立远程数据链路... 目标：GitHub 存储库。</p>
+            
+            <a href="https://github.com/Narlea/narlea.github.io" target="_blank" class="cyber-link-card">
+                <div class="card-glitch-effect"></div>
+                <div class="card-inner">
+                    <div class="link-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                        </svg>
+                    </div>
+                    <div class="link-text">
+                        <span class="label">REPOSITORY_URL</span>
+                        <span class="title">NARLEA / BLOG_SOURCE</span>
+                        <span class="status"><span class="pulse-dot"></span> CONNECTION_LIVE</span>
+                    </div>
+                    <div class="link-arrow">
+                        <div class="arrow-line"></div>
+                        <div class="arrow-head"></div>
+                    </div>
+                </div>
+            </a>
+
+            <style>
+                .cyber-link-card {
+                    display: block;
+                    position: relative;
+                    max-width: 450px;
+                    margin: 30px 0;
+                    padding: 2px; 
+                    background: linear-gradient(135deg, var(--neon-blue) 0%, transparent 40%, var(--neon-blue) 100%);
+                    text-decoration: none;
+                    clip-path: polygon(0 0, 95% 0, 100% 25%, 100% 100%, 5% 100%, 0 75%);
+                    transition: all 0.3s ease;
+                }
+
+                .cyber-link-card:hover {
+                    transform: scale(1.02) translateX(10px);
+                    box-shadow: -5px 0 20px rgba(0, 217, 255, 0.4);
+                }
+
+                .card-inner {
+                    background: #03140b; 
+                    padding: 20px;
+                    display: flex;
+                    align-items: center;
+                    gap: 20px;
+                    clip-path: polygon(0 0, 95% 0, 100% 25%, 100% 100%, 5% 100%, 0 75%);
+                    border: 1px solid rgba(0, 217, 255, 0.1);
+                }
+
+                .link-icon {
+                    color: var(--neon-blue);
+                    width: 40px;
+                    height: 40px;
+                    filter: drop-shadow(0 0 5px var(--neon-blue));
+                }
+
+                .link-text {
+                    display: flex;
+                    flex-direction: column;
+                    flex-grow: 1;
+                }
+
+                .link-text .label {
+                    font-size: 10px;
+                    color: var(--text-dim);
+                    letter-spacing: 2px;
+                }
+
+                .link-text .title {
+                    font-size: 18px;
+                    color: var(--text-cyan);
+                    font-weight: bold;
+                    margin: 4px 0;
+                }
+
+                .link-text .status {
+                    font-size: 10px;
+                    color: #00ff88;
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                }
+
+                .pulse-dot {
+                    width: 6px;
+                    height: 6px;
+                    background: #00ff88;
+                    border-radius: 50%;
+                    animation: pulse 1.5s infinite;
+                }
+
+                .link-arrow {
+                    position: relative;
+                    width: 30px;
+                    height: 20px;
+                    display: flex;
+                    align-items: center;
+                }
+
+                .arrow-line {
+                    width: 100%;
+                    height: 2px;
+                    background: var(--neon-blue);
+                    transform-origin: right;
+                    transition: 0.3s;
+                }
+
+                .cyber-link-card:hover .arrow-line {
+                    width: 120%;
+                }
+
+                @keyframes pulse {
+                    0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
+                    70% { box-shadow: 0 0 0 10px rgba(0, 255, 136, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+                }
+
+                /* 扫描线效果 */
+                .cyber-link-card::before {
+                    content: "";
+                    position: absolute;
+                    top: 0; left: -100%;
+                    width: 50%;
+                    height: 100%;
+                    background: linear-gradient(90deg, transparent, rgba(0, 217, 255, 0.2), transparent);
+                    transition: 0.5s;
+                    z-index: 2;
+                }
+
+                .cyber-link-card:hover::before {
+                    left: 100%;
+                    transition: 0.8s;
+                }
+            </style>
         `
     };
+    
 
     function typeWriter(text, element, speed = 50) {
         let i = 0;
@@ -381,6 +552,7 @@
     }
 
     function showDetail(title) {
+        updateStats(true);
         document.getElementById('post-list').style.display = 'none';
         document.getElementById('post-detail').style.display = 'block';
         const titleEl = document.getElementById('detail-title');
