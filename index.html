@@ -1,578 +1,978 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Narlea | Digital Terminal</title>
-    <link rel="icon" href="https://raw.githubusercontent.com/Narlea/narlea.github.io/refs/heads/main/assets/icon.png" type="image/png">
+    <link
+      rel="icon"
+      href="https://raw.githubusercontent.com/Narlea/narlea.github.io/refs/heads/main/assets/icon.png"
+      type="image/png"
+    />
     <style>
-        :root {
-            --bg-dark: #020508;
-            --panel-bg: rgba(6, 12, 20, 0.85);
-            --neon-blue: #00d9ff;
-            --neon-glow: 0 0 15px rgba(0, 217, 255, 0.4);
-            --text-cyan: #a0eaff;
-            --text-dim: #5c7d8a;
-            /* 闸门背景色：深绿环氧树脂 */
-            --gate-bg: #03140b; 
-            /* 闸门线条色：金色 */
-            --gate-line: #bda06d; 
+      /* 赛博链接卡片基础样式 */
+      .cyber-link-card {
+        display: block;
+        position: relative;
+        max-width: 450px;
+        margin: 30px 0;
+        padding: 2px;
+        background: linear-gradient(
+          135deg,
+          var(--neon-blue) 0%,
+          transparent 40%,
+          var(--neon-blue) 100%
+        );
+        text-decoration: none;
+        clip-path: polygon(0 0, 95% 0, 100% 25%, 100% 100%, 5% 100%, 0 75%);
+        transition: all 0.3s ease;
+      }
+      .cyber-link-card:hover {
+        transform: scale(1.02) translateX(10px);
+        box-shadow: -5px 0 20px rgba(0, 217, 255, 0.4);
+      }
+      .card-inner {
+        background: #03140b;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        clip-path: polygon(0 0, 95% 0, 100% 25%, 100% 100%, 5% 100%, 0 75%);
+        border: 1px solid rgba(0, 217, 255, 0.1);
+      }
+      .link-icon {
+        color: var(--neon-blue);
+        width: 40px;
+        height: 40px;
+        filter: drop-shadow(0 0 5px var(--neon-blue));
+      }
+      .link-text {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+      }
+      .link-text .label {
+        font-size: 10px;
+        color: var(--text-dim);
+        letter-spacing: 2px;
+      }
+      .link-text .title {
+        font-size: 18px;
+        color: var(--text-cyan);
+        font-weight: bold;
+        margin: 4px 0;
+      }
+      .link-text .status {
+        font-size: 10px;
+        color: #00ff88;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .pulse-dot {
+        width: 6px;
+        height: 6px;
+        background: #00ff88;
+        border-radius: 50%;
+        animation: pulse-anim 1.5s infinite;
+      }
+      .link-arrow {
+        position: relative;
+        width: 30px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+      }
+      .arrow-line {
+        width: 100%;
+        height: 2px;
+        background: var(--neon-blue);
+        transform-origin: right;
+        transition: 0.3s;
+      }
+      .cyber-link-card:hover .arrow-line {
+        width: 120%;
+      }
+      @keyframes pulse-anim {
+        0% {
+          box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7);
         }
-
-        * { box-sizing: border-box; }
-
-        /* --- 核心：进入特效（闸门与充能） --- */
-        #boot-gate {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 9999;
-            display: flex;
-            overflow: hidden; /* 用于闸门分割 */
+        70% {
+          box-shadow: 0 0 0 10px rgba(0, 255, 136, 0);
         }
-
-        /* 闸门的两半 */
-        .gate-half {
-            width: 50%; height: 100%;
-            background-color: var(--gate-bg);
-            /* 深绿色纹理背景 */
-            background-image: 
-                linear-gradient(rgba(189, 160, 109, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(189, 160, 109, 0.03) 1px, transparent 1px);
-            background-size: 80px 80px;
-            position: relative;
-            transition: transform 1.2s cubic-bezier(0.7, 0, 0.3, 1) 1.5s; /* 充能后延迟分割 */
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        100% {
+          box-shadow: 0 0 0 0 rgba(0, 255, 136, 0);
         }
+      }
 
-        /* 左闸门向左滑，右闸门向右滑 */
-        #gate-left { transform: translateX(0); border-right: 2px solid var(--gate-line); }
-        #gate-right { transform: translateX(0); border-left: 2px solid var(--gate-line); }
+      :root {
+        --bg-dark: #020508;
+        --panel-bg: rgba(6, 12, 20, 0.85);
+        --neon-blue: #00d9ff;
+        --neon-glow: 0 0 15px rgba(0, 217, 255, 0.4);
+        --text-cyan: #a0eaff;
+        --text-dim: #5c7d8a;
+        /* 闸门背景色：深绿环氧树脂 */
+        --gate-bg: #03140b;
+        /* 闸门线条色：金色 */
+        --gate-line: #bda06d;
+      }
 
-        #boot-gate.opened #gate-left { transform: translateX(-100%); }
-        #boot-gate.opened #gate-right { transform: translateX(100%); }
+      * {
+        box-sizing: border-box;
+      }
 
-        /* SVG 样式：在两扇闸门上分别对齐 */
-        .circuit-svg {
-            position: absolute;
-            top: 50%;
-            width: 150%; height: auto; /* 横跨两半区域 */
-            filter: drop-shadow(0 0 3px rgba(189, 160, 109, 0.5)); /* 金色发光 */
+      /* --- 核心：进入特效（闸门与充能） --- */
+      #boot-gate {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 9999;
+        display: flex;
+        overflow: hidden; /* 用于闸门分割 */
+      }
+
+      /* 闸门的两半 */
+      .gate-half {
+        width: 50%;
+        height: 100%;
+        background-color: var(--gate-bg);
+        /* 深绿色纹理背景 */
+        background-image:
+          linear-gradient(rgba(189, 160, 109, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(189, 160, 109, 0.03) 1px, transparent 1px);
+        background-size: 80px 80px;
+        position: relative;
+        transition: transform 1.2s cubic-bezier(0.7, 0, 0.3, 1) 1.5s; /* 充能后延迟分割 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* 左闸门向左滑，右闸门向右滑 */
+      #gate-left {
+        transform: translateX(0);
+        border-right: 2px solid var(--gate-line);
+      }
+      #gate-right {
+        transform: translateX(0);
+        border-left: 2px solid var(--gate-line);
+      }
+
+      #boot-gate.opened #gate-left {
+        transform: translateX(-100%);
+      }
+      #boot-gate.opened #gate-right {
+        transform: translateX(100%);
+      }
+
+      /* SVG 样式：在两扇闸门上分别对齐 */
+      .circuit-svg {
+        position: absolute;
+        top: 50%;
+        width: 150%;
+        height: auto; /* 横跨两半区域 */
+        filter: drop-shadow(0 0 3px rgba(189, 160, 109, 0.5)); /* 金色发光 */
+      }
+
+      #gate-left .circuit-svg {
+        right: 0; /* 对齐到中间缝隙 */
+        transform: translateY(-50%) scaleX(-1); /* 镜像，让充能从左到右 */
+      }
+      #gate-right .circuit-svg {
+        left: 0; /* 对齐到中间缝隙 */
+        transform: translateY(-50%); /* 正常，让充能从右到左 */
+      }
+
+      /* 基础金丝线条样式 */
+      .pcb-trace {
+        fill: none;
+        stroke: var(--gate-line); /* 默认金色 */
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        stroke-dasharray: 1200;
+        stroke-dashoffset: 1200;
+      }
+
+      /* 金色焊盘（圆圈） */
+      .pcb-pad {
+        fill: var(--gate-bg);
+        stroke: var(--gate-line);
+        stroke-width: 2.5;
+        transition:
+          stroke 0.3s,
+          fill 0.3s,
+          filter 0.3s;
+        filter: drop-shadow(0 0 3px rgba(189, 160, 109, 0.5));
+      }
+
+      /* 蓝色霓虹充能线条 */
+      .pcb-trace.charging {
+        animation: circuit-trace 4s ease-in-out forwards;
+      }
+
+      /* 蓝色激活焊盘 */
+      .pcb-pad.active {
+        stroke: var(--neon-blue); /* 变为蓝色 */
+        fill: #fff; /* 内部变为白色，增强亮度 */
+        filter: drop-shadow(0 0 10px var(--neon-blue));
+      }
+
+      /* 充能动画 */
+      @keyframes circuit-trace {
+        0% {
+          stroke: var(--gate-line);
+          stroke-dashoffset: 1200;
         }
-
-        #gate-left .circuit-svg {
-            right: 0; /* 对齐到中间缝隙 */
-            transform: translateY(-50%) scaleX(-1); /* 镜像，让充能从左到右 */
+        10% {
+          stroke: var(--neon-blue);
+        } /* 开始流动时变为蓝色 */
+        100% {
+          stroke: var(--neon-blue);
+          stroke-dashoffset: 0;
         }
-        #gate-right .circuit-svg {
-            left: 0; /* 对齐到中间缝隙 */
-            transform: translateY(-50%); /* 正常，让充能从右到左 */
+      }
+
+      /* 主容器终端扫描展开动画 */
+      .container {
+        display: grid;
+        grid-template-columns: 280px 1fr 300px;
+        gap: 20px;
+        width: 100%;
+        max-width: 1400px;
+        z-index: 1;
+        opacity: 0;
+        transform: scale(1.02);
+        transition: all 1.5s cubic-bezier(0.19, 1, 0.22, 1) 2s; /* 闸门开启后扫描 */
+        clip-path: inset(50% 50% 50% 50%); /* 初始扫描状态 */
+      }
+
+      .container.loaded {
+        opacity: 1;
+        transform: scale(1);
+        clip-path: inset(0 0 0 0); /* 展开状态 */
+      }
+
+      /* --- 基础样式（赛博风） --- */
+      body {
+        background-color: var(--bg-dark);
+        background-image:
+          linear-gradient(rgba(0, 217, 255, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 217, 255, 0.03) 1px, transparent 1px);
+        background-size: 30px 30px;
+        color: var(--text-cyan);
+        font-family: "Consolas", "Monaco", "Microsoft YaHei", monospace;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* 扫描线动画 */
+      body::before {
+        content: " ";
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        background:
+          linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+          linear-gradient(
+            90deg,
+            rgba(255, 0, 0, 0.06),
+            rgba(0, 255, 0, 0.02),
+            rgba(0, 0, 255, 0.06)
+          );
+        background-size:
+          100% 2px,
+          3px 100%;
+        z-index: 10;
+        pointer-events: none;
+        opacity: 0.3;
+      }
+
+      .card {
+        background: var(--panel-bg);
+        border: 1px solid rgba(0, 217, 255, 0.2);
+        backdrop-filter: blur(8px);
+        box-shadow: var(--neon-glow);
+        padding: 20px;
+        margin-bottom: 20px;
+        position: relative;
+      }
+
+      .card::after {
+        content: "";
+        position: absolute;
+        bottom: -1px;
+        right: -1px;
+        width: 20px;
+        height: 20px;
+        background: linear-gradient(
+          135deg,
+          transparent 50%,
+          var(--neon-blue) 50%
+        );
+        clip-path: polygon(100% 0, 100% 100%, 0 100%);
+      }
+
+      .profile {
+        text-align: center;
+        padding: 20px 0;
+      }
+      .avatar-wrap {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 15px;
+        border: 2px solid var(--neon-blue);
+        padding: 5px;
+        border-radius: 50%;
+        box-shadow: 0 0 20px rgba(0, 217, 255, 0.2);
+        overflow: hidden;
+      }
+      .avatar-wrap img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+
+      .nav-link {
+        color: var(--text-cyan);
+        text-decoration: none;
+        display: block;
+        padding: 12px;
+        margin: 5px 0;
+        border-left: 2px solid transparent;
+        transition: 0.3s;
+        font-size: 14px;
+      }
+      .nav-link:hover {
+        background: rgba(0, 217, 255, 0.1);
+        border-left: 2px solid var(--neon-blue);
+        text-shadow: 0 0 8px var(--neon-blue);
+      }
+
+      #post-detail {
+        display: none;
+      }
+      .system-msg {
+        border-left: 4px solid var(--neon-blue);
+        background: rgba(0, 217, 255, 0.05);
+        padding: 15px;
+        margin-bottom: 30px;
+      }
+      .post-title {
+        color: var(--neon-blue);
+        font-size: 22px;
+        margin: 0 0 10px 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .post-meta {
+        font-size: 12px;
+        color: var(--text-dim);
+        margin-bottom: 15px;
+      }
+
+      .btn-access {
+        display: inline-block;
+        border: 1px solid var(--neon-blue);
+        padding: 8px 18px;
+        color: var(--neon-blue);
+        text-decoration: none;
+        font-size: 12px;
+        transition: 0.3s;
+        background: transparent;
+        cursor: pointer;
+      }
+      .btn-access:hover {
+        background: var(--neon-blue);
+        color: var(--bg-dark);
+        box-shadow: 0 0 15px var(--neon-blue);
+      }
+
+      .typing::after {
+        content: "|";
+        animation: blink 0.7s infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0;
         }
+      }
 
-        /* 基础金丝线条样式 */
-        .pcb-trace {
-            fill: none;
-            stroke: var(--gate-line); /* 默认金色 */
-            stroke-width: 2.5;
-            stroke-linecap: round;
-            stroke-dasharray: 1200;
-            stroke-dashoffset: 1200;
-        }
+      .content-body {
+        line-height: 1.8;
+        color: #fff;
+        font-size: 15px;
+      }
+      .content-body h3 {
+        color: var(--neon-blue);
+        border-bottom: 1px solid rgba(0, 217, 255, 0.2);
+        padding-bottom: 10px;
+        margin-top: 25px;
+      }
+      .code-block {
+        background: #000;
+        padding: 15px;
+        border: 1px dashed var(--neon-blue);
+        font-family: monospace;
+        color: #0f0;
+        margin: 15px 0;
+        overflow-x: auto;
+      }
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        background: #00ff88;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+        box-shadow: 0 0 10px #00ff88;
+      }
+      h3.sidebar-title {
+        font-size: 14px;
+        border-bottom: 1px solid rgba(0, 217, 255, 0.3);
+        padding-bottom: 8px;
+        margin-bottom: 15px;
+        color: var(--neon-blue);
+      }
 
-        /* 金色焊盘（圆圈） */
-        .pcb-pad {
-            fill: var(--gate-bg);
-            stroke: var(--gate-line);
-            stroke-width: 2.5;
-            transition: stroke 0.3s, fill 0.3s, filter 0.3s;
-            filter: drop-shadow(0 0 3px rgba(189, 160, 109, 0.5));
-        }
-
-        /* 蓝色霓虹充能线条 */
-        .pcb-trace.charging {
-            animation: circuit-trace 4s ease-in-out forwards;
-        }
-
-        /* 蓝色激活焊盘 */
-        .pcb-pad.active {
-            stroke: var(--neon-blue); /* 变为蓝色 */
-            fill: #fff; /* 内部变为白色，增强亮度 */
-            filter: drop-shadow(0 0 10px var(--neon-blue));
-        }
-
-        /* 充能动画 */
-        @keyframes circuit-trace {
-            0% { stroke: var(--gate-line); stroke-dashoffset: 1200; }
-            10% { stroke: var(--neon-blue); } /* 开始流动时变为蓝色 */
-            100% { stroke: var(--neon-blue); stroke-dashoffset: 0; }
-        }
-
-        /* 主容器终端扫描展开动画 */
-        .container {
-            display: grid;
-            grid-template-columns: 280px 1fr 300px;
-            gap: 20px;
-            width: 100%;
-            max-width: 1400px;
-            z-index: 1;
-            opacity: 0;
-            transform: scale(1.02);
-            transition: all 1.5s cubic-bezier(0.19, 1, 0.22, 1) 2s; /* 闸门开启后扫描 */
-            clip-path: inset(50% 50% 50% 50%); /* 初始扫描状态 */
-        }
-
-        .container.loaded {
-            opacity: 1;
-            transform: scale(1);
-            clip-path: inset(0 0 0 0); /* 展开状态 */
-        }
-
-        /* --- 基础样式（赛博风） --- */
-        body {
-            background-color: var(--bg-dark);
-            background-image: 
-                linear-gradient(rgba(0, 217, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 217, 255, 0.03) 1px, transparent 1px);
-            background-size: 30px 30px;
-            color: var(--text-cyan);
-            font-family: 'Consolas', 'Monaco', 'Microsoft YaHei', monospace;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            padding: 20px;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* 扫描线动画 */
-        body::before {
-            content: " ";
-            position: fixed; top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 2px, 3px 100%;
-            z-index: 10; pointer-events: none; opacity: 0.3;
-        }
-
-        .card {
-            background: var(--panel-bg);
-            border: 1px solid rgba(0, 217, 255, 0.2);
-            backdrop-filter: blur(8px);
-            box-shadow: var(--neon-glow);
-            padding: 20px;
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .card::after {
-            content: "";
-            position: absolute; bottom: -1px; right: -1px;
-            width: 20px; height: 20px;
-            background: linear-gradient(135deg, transparent 50%, var(--neon-blue) 50%);
-            clip-path: polygon(100% 0, 100% 100%, 0 100%);
-        }
-
-        .profile { text-align: center; padding: 20px 0; }
-        .avatar-wrap {
-            width: 120px; height: 120px; margin: 0 auto 15px;
-            border: 2px solid var(--neon-blue); padding: 5px; border-radius: 50%;
-            box-shadow: 0 0 20px rgba(0, 217, 255, 0.2); overflow: hidden;
-        }
-        .avatar-wrap img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-
-        .nav-link {
-            color: var(--text-cyan); text-decoration: none; display: block;
-            padding: 12px; margin: 5px 0; border-left: 2px solid transparent;
-            transition: 0.3s; font-size: 14px;
-        }
-        .nav-link:hover { background: rgba(0, 217, 255, 0.1); border-left: 2px solid var(--neon-blue); text-shadow: 0 0 8px var(--neon-blue); }
-
-        #post-detail { display: none; } 
-        .system-msg { border-left: 4px solid var(--neon-blue); background: rgba(0, 217, 255, 0.05); padding: 15px; margin-bottom: 30px; }
-        .post-title { color: var(--neon-blue); font-size: 22px; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 1px; }
-        .post-meta { font-size: 12px; color: var(--text-dim); margin-bottom: 15px; }
-
-        .btn-access {
-            display: inline-block; border: 1px solid var(--neon-blue); padding: 8px 18px;
-            color: var(--neon-blue); text-decoration: none; font-size: 12px;
-            transition: 0.3s; background: transparent; cursor: pointer;
-        }
-        .btn-access:hover { background: var(--neon-blue); color: var(--bg-dark); box-shadow: 0 0 15px var(--neon-blue); }
-
-        .typing::after { content: "|"; animation: blink 0.7s infinite; }
-        @keyframes blink { 50% { opacity: 0; } }
-
-        .content-body { line-height: 1.8; color: #fff; font-size: 15px; }
-        .content-body h3 { color: var(--neon-blue); border-bottom: 1px solid rgba(0, 217, 255, 0.2); padding-bottom: 10px; margin-top: 25px; }
-        .code-block { background: #000; padding: 15px; border: 1px dashed var(--neon-blue); font-family: monospace; color: #0f0; margin: 15px 0; overflow-x: auto; }
-        .status-dot { width: 8px; height: 8px; background: #00ff88; border-radius: 50%; display: inline-block; margin-right: 8px; box-shadow: 0 0 10px #00ff88; }
-        h3.sidebar-title { font-size: 14px; border-bottom: 1px solid rgba(0, 217, 255, 0.3); padding-bottom: 8px; margin-bottom: 15px; color: var(--neon-blue); }
+      /* 过滤选中样式 */
+      .filter-tag:hover {
+        background: rgba(0, 217, 255, 0.2);
+      }
+      .filter-tag.active {
+        background: var(--neon-blue);
+        color: var(--bg-dark);
+        box-shadow: 0 0 10px var(--neon-blue);
+      }
     </style>
-</head>
-<body>
-
-<div id="boot-gate">
-    <div class="gate-half" id="gate-left">
+  </head>
+  <body>
+    <div id="boot-gate">
+      <div class="gate-half" id="gate-left">
         <svg class="circuit-svg" viewBox="0 0 400 400">
-            <g class="circuit-traces">
-                <path class="pcb-trace" d="M0 120 L100 120 L150 150 L290 150" />
-                <path class="pcb-trace" d="M0 120 L100 120 L150 120 L200 120" />
-                <path class="pcb-trace" d="M0 150 L100 150 L150 200 L260 200" />
-                <path class="pcb-trace" d="M0 180 L100 180 L150 230 L230 230" />
-                <path class="pcb-trace" d="M0 210 L90 210 L140 260 L200 260" />
-                <path class="pcb-trace" d="M0 300 L150 300 L180 270 L300 270 L300 190" />
-                <path class="pcb-trace" d="M0 300 L650 300 L620 270 L500 270 L500 190" />
-            </g>
-            <g class="circuit-pads">
-                <circle class="pcb-pad pad-left" cx="200" cy="120" r="8" style="transition-delay: 0.4s;" />
-                <circle class="pcb-pad pad-left" cx="150" cy="300" r="8" style="transition-delay: 0.8s;" />
-            </g>
+          <g class="circuit-traces">
+            <path class="pcb-trace" d="M0 120 L100 120 L150 150 L290 150" />
+            <path class="pcb-trace" d="M0 120 L100 120 L150 120 L200 120" />
+            <path class="pcb-trace" d="M0 150 L100 150 L150 200 L260 200" />
+            <path class="pcb-trace" d="M0 180 L100 180 L150 230 L230 230" />
+            <path class="pcb-trace" d="M0 210 L90 210 L140 260 L200 260" />
+            <path
+              class="pcb-trace"
+              d="M0 300 L150 300 L180 270 L300 270 L300 190"
+            />
+            <path
+              class="pcb-trace"
+              d="M0 300 L650 300 L620 270 L500 270 L500 190"
+            />
+          </g>
+          <g class="circuit-pads">
+            <circle
+              class="pcb-pad pad-left"
+              cx="200"
+              cy="120"
+              r="8"
+              style="transition-delay: 0.4s"
+            />
+            <circle
+              class="pcb-pad pad-left"
+              cx="150"
+              cy="300"
+              r="8"
+              style="transition-delay: 0.8s"
+            />
+          </g>
         </svg>
-    </div>
-    <div class="gate-half" id="gate-right">
+      </div>
+      <div class="gate-half" id="gate-right">
         <svg class="circuit-svg" viewBox="0 0 400 400">
-            <g class="circuit-traces">
-                <path class="pcb-trace" d="M0 120 L100 120 L150 100 L390 100" />
-                <path class="pcb-trace" d="M0 150 L100 150 L150 130 L390 130" />
-                <path class="pcb-trace" d="M0 150 L100 150 L150 150 L250 150" />
-                <path class="pcb-trace" d="M0 180 L120 180 L170 230 L390 230" />
-                <path class="pcb-trace" d="M0 210 L140 210 L190 260 L390 260" />
-                <path class="pcb-trace" d="M0 300 L50 300 L80 330 L200 330 L200 330" />
-                <path class="pcb-trace" d="M0 300 L650 300 L620 270 L500 270 L500 330" />
-            </g>
-            <g class="circuit-pads">
-                <circle class="pcb-pad pad-right" cx="100" cy="150" r="8" style="transition-delay: 1.2s;" />
-                <circle class="pcb-pad pad-right" cx="150" cy="300" r="8" style="transition-delay: 1.6s;" />
-            </g>
+          <g class="circuit-traces">
+            <path class="pcb-trace" d="M0 120 L100 120 L150 100 L390 100" />
+            <path class="pcb-trace" d="M0 150 L100 150 L150 130 L390 130" />
+            <path class="pcb-trace" d="M0 150 L100 150 L150 150 L250 150" />
+            <path class="pcb-trace" d="M0 180 L120 180 L170 230 L390 230" />
+            <path class="pcb-trace" d="M0 210 L140 210 L190 260 L390 260" />
+            <path
+              class="pcb-trace"
+              d="M0 300 L50 300 L80 330 L200 330 L200 330"
+            />
+            <path
+              class="pcb-trace"
+              d="M0 300 L650 300 L620 270 L500 270 L500 330"
+            />
+          </g>
+          <g class="circuit-pads">
+            <circle
+              class="pcb-pad pad-right"
+              cx="100"
+              cy="150"
+              r="8"
+              style="transition-delay: 1.2s"
+            />
+            <circle
+              class="pcb-pad pad-right"
+              cx="150"
+              cy="300"
+              r="8"
+              style="transition-delay: 1.6s"
+            />
+          </g>
         </svg>
+      </div>
     </div>
-</div>
 
-<div class="container" id="main-container">
-    <aside>
+    <div class="container" id="main-container">
+      <aside>
         <div class="card profile">
-            <div class="avatar-wrap">
-                <img src="https://raw.githubusercontent.com/Narlea/narlea.github.io/refs/heads/main/assets/avatar.jpg" alt="Narlea Avatar">
-            </div>
-            <h2 style="margin: 10px 0 5px; color: var(--neon-blue);">Narlea</h2>
-            <p style="font-size: 12px; color: var(--text-dim);">SYSTEM ARCHITECT / DEVELOPER</p>
-            <div style="margin-top: 15px; font-size: 13px;">
-                <span id="stat-post-count">0 档案</span> | <span id="stat-visit-count">0 访问</span>
-            </div>
+          <div class="avatar-wrap">
+            <img
+              src="https://raw.githubusercontent.com/Narlea/narlea.github.io/refs/heads/main/assets/avatar.jpg"
+              alt="Narlea Avatar"
+            />
+          </div>
+          <h2 style="margin: 10px 0 5px; color: var(--neon-blue)">Narlea</h2>
+          <p style="font-size: 12px; color: var(--text-dim)">
+            SYSTEM ARCHITECT / DEVELOPER
+          </p>
+          <div style="margin-top: 15px; font-size: 13px">
+            <span id="stat-post-count">0 档案</span> |
+            <span id="stat-visit-count">0 访问</span>
+          </div>
         </div>
-        <div class="card" style="padding: 10px 0;">
-            <a href="javascript:void(0)" onclick="showHome()" class="nav-link">>> [ 主页 ] ROOT_HOME</a>
-            <a href="#" class="nav-link">>> [ 工具 ] TOOL_KIT</a>
-            <a href="#" class="nav-link">>> [ 归档 ] DATA_LOGS</a>
-            <a href="#" class="nav-link">>> [ 关于 ] IDENTITY_INFO</a>
+        <div class="card" style="padding: 10px 0">
+          <a href="javascript:void(0)" onclick="showHome()" class="nav-link"
+            >>> [ 主页 ] ROOT_HOME</a
+          >
+          <a href="#" class="nav-link">>> [ 工具 ] TOOL_KIT</a>
+          <a href="#" class="nav-link">>> [ 归档 ] DATA_LOGS</a>
+          <a href="#" class="nav-link">>> [ 关于 ] IDENTITY_INFO</a>
         </div>
-    </aside>
+      </aside>
 
-    <main id="main-content">
+      <main id="main-content">
         <div id="post-list">
-            <div class="card system-msg">
-                <h2 class="post-title" style="color: #fff;">Initialize Success_</h2>
-                <p>庆祝 2026/03/09 Narlea blog 个人站正式建立。全系统模组载入完成，正在同步数字灵魂...</p>
+          <div class="card system-msg">
+            <h2 class="post-title" style="color: #fff">Initialize Success_</h2>
+            <p>
+              庆祝 2026/03/09 Narlea blog
+              个人站正式建立。全系统模组载入完成，正在同步数字灵魂...
+            </p>
+          </div>
+
+          <div class="card post-card" data-category="CUDA">
+            <div class="post-meta">DATE: 2026.03.09 / CATEGORY: CUDA</div>
+            <h2 class="post-title">CUDA的核心概念</h2>
+            <p>一份来自初学者的CUDA核心名词概念的阐述...</p>
+            <div class="btn-access" onclick="showDetail('CUDA的核心概念')">
+              ACCESS_DATA_
             </div>
-            <div class="card">
-                <div class="post-meta">DATE: 2026.03.01 / CATEGORY: CUDA</div>
-                <h2 class="post-title">CUDA的核心概念</h2>
-                <p>一份来自初学者的CUDA核心名词概念的阐述...</p>
-                <div class="btn-access" onclick="showDetail('CUDA的核心概念')">ACCESS_DATA_</div>
+          </div>
+
+          <div class="card post-card" data-category="WEB_FRONTEND">
+            <div class="post-meta">
+              DATE: 2026.03.09 / CATEGORY: WEB_FRONTEND
             </div>
-            <div class="card">
-                <div class="post-meta">DATE: 2026.03.09 / CATEGORY: WEB_FRONTEND</div>
-                <h2 class="post-title">Personal_Blog</h2>
-                <p>一个赛博科幻风格的开源Web前端项目...</p>
-                <div class="btn-access" onclick="showDetail('Personal_Blog')">ACCESS_DATA_</div>
+            <h2 class="post-title">Personal_Blog</h2>
+            <p>一个赛博科幻风格的开源Web前端项目...</p>
+            <div class="btn-access" onclick="showDetail('Personal_Blog')">
+              ACCESS_DATA_
             </div>
+          </div>
+
+          <div class="card post-card" data-category="OPENCLAW">
+            <div class="post-meta">DATE: 2026.03.12 / CATEGORY: OPENCLAW</div>
+            <h2 class="post-title">OPENCLAW_2026.3.2的两项bug</h2>
+            <p>两个在OPENCLAW 2026.3.2版本中发现的bug...</p>
+            <div
+              class="btn-access"
+              onclick="showDetail('OPENCLAW_2026.3.2的两项bug')"
+            >
+              ACCESS_DATA_
+            </div>
+          </div>
+          <div class="card post-card" data-category="WEB_FRONTEND">
+            <div class="post-meta">
+              DATE: 2026.03.12 / CATEGORY: WEB_FRONTEND
+            </div>
+            <h2 class="post-title">SVG图标</h2>
+            <p>一些未来会应用到blog中的SVG图标</p>
+            <div class="btn-access" onclick="showDetail('SVG图标')">
+              ACCESS_DATA_
+            </div>
+          </div>
         </div>
 
         <div id="post-detail">
-            <div class="card">
-                <div class="btn-access" onclick="showHome()" style="margin-bottom: 20px;"> << BACK_TO_LIST </div>
-                <h2 id="detail-title" class="post-title typing"></h2>
-                <div class="post-meta">ID: 0x8F2 / SECURITY: LEVEL_4</div>
-                <div id="detail-body" class="content-body">
-                </div>
+          <div class="card">
+            <div
+              class="btn-access"
+              onclick="showHome()"
+              style="margin-bottom: 20px"
+            >
+              << BACK_TO_LIST
             </div>
+            <h2 id="detail-title" class="post-title typing"></h2>
+            <div class="post-meta">ID: 0x8F2 / SECURITY: LEVEL_4</div>
+            <div id="detail-body" class="content-body"></div>
+          </div>
         </div>
-    </main>
-    
+      </main>
 
-    <aside>
+      <aside>
         <div class="card">
-            <h3 class="sidebar-title"><span class="status-dot"></span> 系统广播</h3>
-            <p style="font-size: 13px; line-height: 1.8; color: var(--text-cyan);">
-                欢迎来到 Narlea 的个人终端。本空间用于存储算法逻辑、技术心得以及对未来的观测。
-            </p>
+          <h3 class="sidebar-title">
+            <span class="status-dot"></span> 系统广播
+          </h3>
+          <p style="font-size: 13px; line-height: 1.8; color: var(--text-cyan)">
+            欢迎来到 Narlea
+            的个人终端。本空间用于存储算法逻辑、技术心得以及对未来的观测。
+          </p>
         </div>
         <div class="card">
-            <h3 class="sidebar-title">分类节点</h3>
-            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># WEB_FRONTEND</span>
-                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># CUDA</span>
-                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># TRITON</span>
-                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># NN</span>
-                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># PYTORCH</span>
-                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># NLP</span>
-                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># OPENCLAW</span>
-                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># TRITON</span>
-                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># MACHINE_LEARNING</span>
-                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># DBMS</span>
-                <span style="border: 1px solid rgba(0,217,255,0.4); padding: 4px 8px; font-size: 11px; cursor:pointer;"># AGENT</span>
-            </div>
+          <h3 class="sidebar-title">分类节点</h3>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px">
+            <span
+              class="filter-tag"
+              onclick="filterPosts('WEB_FRONTEND', this)"
+              style="
+                border: 1px solid rgba(0, 217, 255, 0.4);
+                padding: 4px 8px;
+                font-size: 11px;
+                cursor: pointer;
+              "
+              ># WEB_FRONTEND</span
+            >
+            <span
+              class="filter-tag"
+              onclick="filterPosts('CUDA', this)"
+              style="
+                border: 1px solid rgba(0, 217, 255, 0.4);
+                padding: 4px 8px;
+                font-size: 11px;
+                cursor: pointer;
+              "
+              ># CUDA</span
+            >
+            <span
+              class="filter-tag"
+              onclick="filterPosts('TRITON', this)"
+              style="
+                border: 1px solid rgba(0, 217, 255, 0.4);
+                padding: 4px 8px;
+                font-size: 11px;
+                cursor: pointer;
+              "
+              ># TRITON</span
+            >
+            <span
+              class="filter-tag"
+              onclick="filterPosts('NN', this)"
+              style="
+                border: 1px solid rgba(0, 217, 255, 0.4);
+                padding: 4px 8px;
+                font-size: 11px;
+                cursor: pointer;
+              "
+              ># NN</span
+            >
+            <span
+              class="filter-tag"
+              onclick="filterPosts('PYTORCH', this)"
+              style="
+                border: 1px solid rgba(0, 217, 255, 0.4);
+                padding: 4px 8px;
+                font-size: 11px;
+                cursor: pointer;
+              "
+              ># PYTORCH</span
+            >
+            <span
+              class="filter-tag"
+              onclick="filterPosts('NLP', this)"
+              style="
+                border: 1px solid rgba(0, 217, 255, 0.4);
+                padding: 4px 8px;
+                font-size: 11px;
+                cursor: pointer;
+              "
+              ># NLP</span
+            >
+            <span
+              class="filter-tag"
+              onclick="filterPosts('OPENCLAW', this)"
+              style="
+                border: 1px solid rgba(0, 217, 255, 0.4);
+                padding: 4px 8px;
+                font-size: 11px;
+                cursor: pointer;
+              "
+              ># OPENCLAW</span
+            >
+            <span
+              class="filter-tag"
+              onclick="filterPosts('MACHINE_LEARNING', this)"
+              style="
+                border: 1px solid rgba(0, 217, 255, 0.4);
+                padding: 4px 8px;
+                font-size: 11px;
+                cursor: pointer;
+              "
+              ># MACHINE_LEARNING</span
+            >
+            <span
+              class="filter-tag"
+              onclick="filterPosts('DBMS', this)"
+              style="
+                border: 1px solid rgba(0, 217, 255, 0.4);
+                padding: 4px 8px;
+                font-size: 11px;
+                cursor: pointer;
+              "
+              ># DBMS</span
+            >
+            <span
+              class="filter-tag"
+              onclick="filterPosts('AGENT', this)"
+              style="
+                border: 1px solid rgba(0, 217, 255, 0.4);
+                padding: 4px 8px;
+                font-size: 11px;
+                cursor: pointer;
+              "
+              ># AGENT</span
+            >
+          </div>
         </div>
-    </aside>
-</div>
+      </aside>
+    </div>
 
-<script>
-    // --- 统计数据同步逻辑 ---
-    function updateStats(isClick = false) {
-    // 1. 档案数：统计主列表里的标题，排除掉详情页那个
-    const allTitles = document.querySelectorAll('.post-title');
-    // 过滤掉位于 post-detail 容器内的标题
-    const listTitles = Array.from(allTitles).filter(el => !document.getElementById('post-detail').contains(el));
-    document.getElementById('stat-post-count').innerText = `${listTitles.length} 档案`;
+    <script>
+      // 升级版函数：增加了一个 iconType 参数
+      const createCard = (url, label, title, iconType = "github") => {
+        // 预设几种常用的图标路径
+        const icons = {
+          github: `<path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>`,
+          nvidia: `<path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M12 6c-3.314 0-6 2.686-6 6 0 2.21 1.194 4.143 2.964 5.196l-.764 1.324A7.53 7.53 0 0 1 4.5 12c0-4.142 3.358-7.5 7.5-7.5 2.112 0 4.026.87 5.4 2.274l-1.414 1.414A5.965 5.965 0 0 0 12 6z"/><circle cx="12" cy="12" r="2"/>`,
+          youtube: `<path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>`,
+          csdn: `<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M8.5 14.5c1.1 1.1 2.9 1.1 4 0l1.4 1.4c-1.9 1.9-4.9 1.9-6.8 0-1.9-1.9-1.9-4.9 0-6.8 1.9-1.9 4.9-1.9 6.8 0l-1.4 1.4c-1.1-1.1-2.9-1.1-4 0-1.1 1.1-1.1 2.9 0 4z"/>`,
+          link: `<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>`,
+          bilibili: `<path d="M17.813 4.653h-.854l1.547-1.567a.74.74 0 1 0-1.046-1.047L14.74 4.803H9.26L6.54 2.039a.74.74 0 0 0-1.046 1.047l1.547 1.567h-.854C4.803 4.653 3.66 5.795 3.66 7.204v7.592c0 1.409 1.143 2.55 2.551 2.55h11.578c1.408 0 2.551-1.141 2.551-2.55V7.204c0-1.409-1.143-2.55-2.551-2.55zM9.277 13.541a1.102 1.102 0 0 1-1.102-1.102v-1.055a1.102 1.102 0 0 1 2.204 0v1.055a1.102 1.102 0 0 1-1.102 1.102zm5.446 0a1.102 1.102 0 0 1-1.102-1.102v-1.055a1.102 1.102 0 0 1 2.204 0v1.055a1.102 1.102 0 0 1-1.102 1.102zM15.303 19.346H8.697a.75.75 0 1 0 0 1.5h6.606a.75.75 0 1 0 0-1.5z"></path>`,
+        };
 
-    // 2. 访问数：持久化存储
-    let visits = localStorage.getItem('narlea_terminal_visits');
-    if (!visits) {
-        // 初始值计算：2026-03-09 至今的天数 * 12
-        const startDate = new Date('2026-03-09');
-        const diffDays = Math.max(0, Math.floor((new Date() - startDate) / (1000 * 60 * 60 * 24)));
-        visits = 0 + (diffDays * 12); 
-    }
+        return `
+          <a href="${url}" target="_blank" class="cyber-link-card">
+              <div class="card-inner">
+                  <div class="link-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          ${icons[iconType] || icons.link} </svg>
+                  </div>
+                  <div class="link-text">
+                      <span class="label">${label}</span>
+                      <span class="title">${title}</span>
+                      <span class="status"><span class="pulse-dot"></span> CONNECTION_LIVE</span>
+                  </div>
+                  <div class="link-arrow"><div class="arrow-line"></div></div>
+              </div>
+          </a>`;
+      };
 
-    if (isClick) {
-        visits = parseInt(visits) + 1;
-    }
+      // --- 分类筛选逻辑 ---
+      let currentCategory = null;
 
-    localStorage.setItem('narlea_terminal_visits', visits);
-    document.getElementById('stat-visit-count').innerText = `${visits} 访问`;
-    }
-    // --- 特效控制逻辑 ---
-    window.onload = () => {
+      function filterPosts(category, element) {
+        const postCards = document.querySelectorAll(".post-card");
+        const tags = document.querySelectorAll(".filter-tag");
+
+        // 切换逻辑：点击已选中的则取消筛选
+        if (currentCategory === category) {
+          currentCategory = null;
+          element.classList.remove("active");
+          postCards.forEach((card) => (card.style.display = "block"));
+        } else {
+          currentCategory = category;
+          // 更新 UI 样式
+          tags.forEach((tag) => tag.classList.remove("active"));
+          element.classList.add("active");
+
+          // 执行过滤
+          postCards.forEach((card) => {
+            if (card.getAttribute("data-category") === category) {
+              card.style.display = "block";
+            } else {
+              card.style.display = "none";
+            }
+          });
+        }
+        // 筛选后更新档案计数
+        updateStats();
+      }
+
+      // --- 统计数据同步逻辑 ---
+      function updateStats(isClick = false) {
+        // 1. 档案数：只统计当前显示的、带 data-category 的卡片
+        const visibleCards = Array.from(
+          document.querySelectorAll(".post-card"),
+        ).filter((el) => el.style.display !== "none");
+        document.getElementById("stat-post-count").innerText =
+          `${visibleCards.length} 档案`;
+
+        // 2. 访问数：持久化存储
+        let visits = localStorage.getItem("narlea_terminal_visits");
+        if (!visits) {
+          // 初始值计算：2026-03-09 至今的天数 * 12
+          const startDate = new Date("2026-03-09");
+          const diffDays = Math.max(
+            0,
+            Math.floor((new Date() - startDate) / (1000 * 60 * 60 * 24)),
+          );
+          visits = 0 + diffDays * 12;
+        }
+
+        if (isClick) {
+          visits = parseInt(visits) + 1;
+        }
+
+        localStorage.setItem("narlea_terminal_visits", visits);
+        document.getElementById("stat-visit-count").innerText =
+          `${visits} 访问`;
+      }
+      // --- 特效控制逻辑 ---
+      window.onload = () => {
         updateStats(); // 初始化统计数据
 
-        const bootGate = document.getElementById('boot-gate');
-        const mainContainer = document.getElementById('main-container');
-        const traces = document.querySelectorAll('.pcb-trace');
-        const pads = document.querySelectorAll('.pcb-pad');
+        const bootGate = document.getElementById("boot-gate");
+        const mainContainer = document.getElementById("main-container");
+        const traces = document.querySelectorAll(".pcb-trace");
+        const pads = document.querySelectorAll(".pcb-pad");
 
         // 1. 开始金丝线路充能
-        traces.forEach(trace => trace.classList.add('charging'));
-        
+        traces.forEach((trace) => trace.classList.add("charging"));
+
         // 2. 金色焊盘变亮激活
-        pads.forEach(pad => {
-            const delay = parseFloat(pad.style.transitionDelay);
-            setTimeout(() => pad.classList.add('active'), (delay * 1000) + 200 + (Math.random()*200));
+        pads.forEach((pad) => {
+          const delay = parseFloat(pad.style.transitionDelay);
+          setTimeout(
+            () => pad.classList.add("active"),
+            delay * 1000 + 200 + Math.random() * 200,
+          );
         });
 
         // 3. 充能完成后开启闸门
-        const chargingTime = 4000; 
+        const chargingTime = 4000;
         setTimeout(() => {
-            bootGate.classList.add('opened');
-            mainContainer.classList.add('loaded');
-            setTimeout(() => { bootGate.style.display = 'none'; }, 2200);
-        }, chargingTime); 
-    };
-    //  代码框
-    // <div class="code-block">
-    //  
-    // 
-    // </div>
-    // --- 详情页映射 ---
-    const articles = {
-        'CUDA的核心概念': `
-            <h3>CUDA的核心概念</h3>
-            <p>1. 主机（Host）：CPU及其内存。  </p>
-            <p>设备（Device）：GPU及其显存。  </p>
-            <p>线程（Thread）：GPU 中最小的执行单元，对应一个具体的计算任务，每个线程有唯一的 threadIdx。</p>
-            <p>2. 块（Block）：由多个线程组成。一个块内的线程可以进行逻辑同步（__syncthreads()），同一个块内的线程可以通过共享内存通信，块有唯一的 blockIdx。</p>
-            <p>网格 (Grid)：多个块组成的集合，网格是核函数启动时的顶层结构，所有块在网格中并行执行。一个 Grid 对应一次核函数（Kernel）的启动。</p>
-            <p>3. 全局内存 (Global)：所有线程 + 主机都可访问，访问速度最慢，适合存储大规模数据（如数组、矩阵）。</p>
-            <p>常量内存 (Constant)：所有线程（只读）可以访问，速度比全局快，适合存储不变的常量（如参数、配置值）。</p>
-            <p>共享内存 (Shared)：同一块内的线程可以访问，速度很快，适合存储块内线程共享数据，减少全局内存访问。</p>
-            <p>寄存器 (Register)：只有单个线程可以访问，速度最快，用于存储线程内临时变量。</p>
-        `,
-        'Personal_Blog': `
-            <h3>PROJECT_SOURCE_CODE</h3>
-            <p>开源的个人博客项目，旨在提供一个赛博科幻风格的数字空间，用于存储和分享算法逻辑、技术心得以及对未来的观测。</p>
-            <p>正在建立远程数据链路... 目标：GitHub 存储库。</p>
-            
-            <a href="https://github.com/Narlea/narlea.github.io" target="_blank" class="cyber-link-card">
-                <div class="card-glitch-effect"></div>
-                <div class="card-inner">
-                    <div class="link-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-                        </svg>
-                    </div>
-                    <div class="link-text">
-                        <span class="label">REPOSITORY_URL</span>
-                        <span class="title">NARLEA / BLOG_SOURCE</span>
-                        <span class="status"><span class="pulse-dot"></span> CONNECTION_LIVE</span>
-                    </div>
-                    <div class="link-arrow">
-                        <div class="arrow-line"></div>
-                        <div class="arrow-head"></div>
-                    </div>
-                </div>
-            </a>
+          bootGate.classList.add("opened");
+          mainContainer.classList.add("loaded");
+          setTimeout(() => {
+            bootGate.style.display = "none";
+          }, 2200);
+        }, chargingTime);
+      };
 
-            <style>
-                .cyber-link-card {
-                    display: block;
-                    position: relative;
-                    max-width: 450px;
-                    margin: 30px 0;
-                    padding: 2px; 
-                    background: linear-gradient(135deg, var(--neon-blue) 0%, transparent 40%, var(--neon-blue) 100%);
-                    text-decoration: none;
-                    clip-path: polygon(0 0, 95% 0, 100% 25%, 100% 100%, 5% 100%, 0 75%);
-                    transition: all 0.3s ease;
-                }
+      // --- 详情页映射 ---
+      const articles = {
+        CUDA的核心概念: `
+              <h3>CUDA的核心概念</h3>
+              <p>1. 主机（Host）：CPU及其内存。  </p>
+              <p>设备（Device）：GPU及其显存。  </p>
+              <p>线程（Thread）：GPU 中最小的执行单元，对应一个具体的计算任务，每个线程有唯一的 threadIdx。</p>
+              <p>2. 块（Block）：由多个线程组成。一个块内的线程可以进行逻辑同步（__syncthreads()），同一个块内的线程可以通过共享内存通信，块有唯一的 blockIdx。</p>
+              <p>网格 (Grid)：多个块组成的集合，网格是核函数启动时的顶层结构，所有块在网格中并行执行。一个 Grid 对应一次核函数（Kernel）的启动。</p>
+              <p>3. 全局内存 (Global)：所有线程 + 主机都可访问，访问速度最慢，适合存储大规模数据（如数组、矩阵）。</p>
+              <p>常量内存 (Constant)：所有线程（只读）可以访问，速度比全局快，适合存储不变的常量（如参数、配置值）。</p>
+              <p>共享内存 (Shared)：同一块内的线程可以访问，速度很快，适合存储块内线程共享数据，减少全局内存访问。</p>
+              <p>寄存器 (Register)：只有单个线程可以访问，速度最快，用于存储线程内临时变量。</p>
+          `,
+        Personal_Blog: `
+              <h3>PROJECT_SOURCE_CODE</h3>
+              <p>开源的个人博客项目，旨在提供一个赛博科幻风格的数字空间。</p>
+             ${createCard("https://github.com/Narlea/narlea.github.io", "REPOSITORY_URL", "NARLEA / BLOG_SOURCE", "github")}
+              <h3>CHANGELOG</h3>
+              
+              <p>2026/03/09 - 个人博客正式建立，完善了整体框架和基础功能</p>
+              <p>2026/03/11 - 新增网页进入动画和炫酷的链接卡牌样式</p>
+              <p>2026/03/12 - 完善了分类节点筛选功能</p>
+              `,
 
-                .cyber-link-card:hover {
-                    transform: scale(1.02) translateX(10px);
-                    box-shadow: -5px 0 20px rgba(0, 217, 255, 0.4);
-                }
+        "OPENCLAW_2026.3.2的两项bug": `
+              <h3>1.log未能存储在对应日期的文件里</h3>
+              <p>如3月6日的log应存在openclaw-2026-03-06.log文件中，实测中却发现log存在了openclaw-2026-03-05.log中，该问题直到手动重启gateway才会得到缓解</p>
+              ${createCard("https://github.com/openclaw/openclaw/issues/37388", "ISSUES_URL", "OPENCLAW / ISSUES", "github")}
+              <h3>2.在预期时间之后手动启动一次性定时重启任务会导致gateway无限重启循环</h3>
+              <p>使用cron布置对应时刻执行的第一性定时重启任务时，如果在所定时刻之后手动启动该任务，会导致gateway不断被重启，任务不会主动结束。</p>
+              ${createCard("https://github.com/openclaw/openclaw/issues/37198", "ISSUES_URL", "OPENCLAW / ISSUES", "github")}
+          <p>OS:macOS (Mac mini)</p>
+          `,
+        "SVG图标": `
+              <h3>SVG图标</h3>
+              <p>展示一些未来会应用到blog中的SVG图标</p>
+              ${createCard("https://github.com/", "SOURCE_URL", "GITHUB", "github")}
+              ${createCard("https://www.nvidia.com/", "SOURCE_URL", "NVIDIA", "nvidia")}
+              ${createCard("https://www.youtube.com/", "SOURCE_URL", "YOUTUBE", "youtube")}
+              ${createCard("https://www.csdn.com/", "SOURCE_URL", "CSDN", "csdn")}
+              ${createCard("https://www.bilibili.com/", "SOURCE_URL", "BILIBILI", "bilibili")}
+          `,
+      };
 
-                .card-inner {
-                    background: #03140b; 
-                    padding: 20px;
-                    display: flex;
-                    align-items: center;
-                    gap: 20px;
-                    clip-path: polygon(0 0, 95% 0, 100% 25%, 100% 100%, 5% 100%, 0 75%);
-                    border: 1px solid rgba(0, 217, 255, 0.1);
-                }
-
-                .link-icon {
-                    color: var(--neon-blue);
-                    width: 40px;
-                    height: 40px;
-                    filter: drop-shadow(0 0 5px var(--neon-blue));
-                }
-
-                .link-text {
-                    display: flex;
-                    flex-direction: column;
-                    flex-grow: 1;
-                }
-
-                .link-text .label {
-                    font-size: 10px;
-                    color: var(--text-dim);
-                    letter-spacing: 2px;
-                }
-
-                .link-text .title {
-                    font-size: 18px;
-                    color: var(--text-cyan);
-                    font-weight: bold;
-                    margin: 4px 0;
-                }
-
-                .link-text .status {
-                    font-size: 10px;
-                    color: #00ff88;
-                    display: flex;
-                    align-items: center;
-                    gap: 5px;
-                }
-
-                .pulse-dot {
-                    width: 6px;
-                    height: 6px;
-                    background: #00ff88;
-                    border-radius: 50%;
-                    animation: pulse 1.5s infinite;
-                }
-
-                .link-arrow {
-                    position: relative;
-                    width: 30px;
-                    height: 20px;
-                    display: flex;
-                    align-items: center;
-                }
-
-                .arrow-line {
-                    width: 100%;
-                    height: 2px;
-                    background: var(--neon-blue);
-                    transform-origin: right;
-                    transition: 0.3s;
-                }
-
-                .cyber-link-card:hover .arrow-line {
-                    width: 120%;
-                }
-
-                @keyframes pulse {
-                    0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
-                    70% { box-shadow: 0 0 0 10px rgba(0, 255, 136, 0); }
-                    100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
-                }
-
-                /* 扫描线效果 */
-                .cyber-link-card::before {
-                    content: "";
-                    position: absolute;
-                    top: 0; left: -100%;
-                    width: 50%;
-                    height: 100%;
-                    background: linear-gradient(90deg, transparent, rgba(0, 217, 255, 0.2), transparent);
-                    transition: 0.5s;
-                    z-index: 2;
-                }
-
-                .cyber-link-card:hover::before {
-                    left: 100%;
-                    transition: 0.8s;
-                }
-            </style>
-        `
-    };
-    
-
-    function typeWriter(text, element, speed = 50) {
+      function typeWriter(text, element, speed = 50) {
         let i = 0;
         element.innerHTML = "> ";
         function type() {
-            if (i < text.length) {
-                element.innerHTML += text.charAt(i);
-                i++;
-                setTimeout(type, speed);
-            }
+          if (i < text.length) {
+            element.innerHTML += text.charAt(i);
+            i++;
+            setTimeout(type, speed);
+          }
         }
         type();
-    }
+      }
 
-    function showDetail(title) {
+      function showDetail(title) {
         updateStats(true);
-        document.getElementById('post-list').style.display = 'none';
-        document.getElementById('post-detail').style.display = 'block';
-        const titleEl = document.getElementById('detail-title');
-        typeWriter(title, titleEl, 70); 
-        const bodyEl = document.getElementById('detail-body');
+        document.getElementById("post-list").style.display = "none";
+        document.getElementById("post-detail").style.display = "block";
+
+        const titleEl = document.getElementById("detail-title");
+        typeWriter(title, titleEl, 70);
+
+        const bodyEl = document.getElementById("detail-body");
+
+        // --- 优化点 1: 清除上一篇残留的过渡效果 ---
+        bodyEl.style.transition = "none";
         bodyEl.style.opacity = "0";
+        // 强制重绘，确保 opacity: 0 立即生效
+        void bodyEl.offsetWidth;
+
         bodyEl.innerHTML = articles[title] || "CONTENT_NOT_FOUND";
+
         setTimeout(() => {
-            bodyEl.style.transition = "opacity 1s";
-            bodyEl.style.opacity = "1";
-        }, 500);
-        window.scrollTo(0, 0);
-    }
+          // --- 优化点 2: 稍微拉长一点点时间，等标题打几个字再显示卡片 ---
+          bodyEl.style.transition = "opacity 0.8s ease-out";
+          bodyEl.style.opacity = "1";
+        }, 300); // 300-500ms 均可，配合你的视觉节奏
 
-    function showHome() {
-        document.getElementById('post-list').style.display = 'block';
-        document.getElementById('post-detail').style.display = 'none';
         window.scrollTo(0, 0);
-    }
-</script>
+      }
 
-</body>
+      function showHome() {
+        // 返回主页时清除过滤
+        const postCards = document.querySelectorAll(".post-card");
+        const tags = document.querySelectorAll(".filter-tag");
+        currentCategory = null;
+        tags.forEach((tag) => tag.classList.remove("active"));
+        postCards.forEach((card) => (card.style.display = "block"));
+
+        document.getElementById("post-list").style.display = "block";
+        document.getElementById("post-detail").style.display = "none";
+        updateStats();
+        window.scrollTo(0, 0);
+      }
+    </script>
+  </body>
 </html>
