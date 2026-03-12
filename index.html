@@ -944,31 +944,43 @@
         }
       };
 
-      // 3. 歌曲点播逻辑
       const playTrack = (fileName, trackTitle) => {
+        // 【信号灯 1】：验证函数是否被调用
+        console.log("Button Clicked!");
+
         const player = document.getElementById("cyber-player");
         const trackDisplay = document.getElementById("current-track-name");
-        const path = document.getElementById("play-icon-path");
 
-        // 设置路径：根据你的 GitHub 结构
-        player.src = `./music/${fileName}`;
+        // 【信号灯 2】：验证 DOM 元素是否存在
+        if (!player || !trackDisplay) {
+          alert("系统错误：找不到音频播放器组件！请检查 HTML ID 是否正确。");
+          return;
+        }
+
+        const rawBaseUrl =
+          "https://raw.githubusercontent.com/Narlea/narlea.github.io/refs/heads/main/music/";
+        player.src = rawBaseUrl + fileName;
+
         trackDisplay.innerText = `> SYNCING: ${trackTitle}`;
 
         player
           .play()
           .then(() => {
+            // 【信号灯 3】：验证播放成功
             trackDisplay.innerText = `> PLAYING: ${trackTitle}`;
-            path.setAttribute("d", ICON_PAUSE);
-            initVisualizer(player);
+            const path = document.getElementById("play-icon-path");
+            if (path) path.setAttribute("d", ICON_PAUSE);
           })
-          .catch(() => {
-            trackDisplay.innerText = "> ERR: INTERACT_REQ";
+          .catch((e) => {
+            // 【信号灯 4】：捕获具体错误
+            console.error("Playback failed:", e);
+            trackDisplay.innerText = `> ERR: ${e.name}`;
+            if (e.name === "NotAllowedError") {
+              alert("浏览器拦截：请先点击一下网页背景再尝试播放。");
+            } else {
+              alert("播放失败，请查看 F12 控制台报错。");
+            }
           });
-
-        player.ontimeupdate = () => {
-          const prog = (player.currentTime / player.duration) * 100 || 0;
-          document.getElementById("play-progress").style.width = `${prog}%`;
-        };
       };
 
       // 4. 播放/暂停切换
