@@ -9,27 +9,20 @@
       type="image/png"
     />
     <style>
-      .pulse-dot {
-        display: inline-block;
-        width: 6px;
-        height: 6px;
-        background-color: var(--neon-blue);
-        border-radius: 50%;
-        margin-right: 6px;
-        box-shadow: 0 0 10px var(--neon-blue);
-        animation: pulse 2s infinite;
+      /* 播放器内的 nav-link 微调：去掉默认下划线，确保间距统一 */
+      .playlist-item {
+        cursor: pointer;
+        padding: 8px 12px !important;
+        font-size: 11px !important;
+        border-bottom: 1px solid rgba(0, 217, 255, 0.05);
       }
 
-      @keyframes pulse {
-        0% {
-          opacity: 0.4;
-        }
-        50% {
-          opacity: 1;
-        }
-        100% {
-          opacity: 0.4;
-        }
+      /* 滚动条照抄你全站的极细风格 */
+      .playlist-scroll-area::-webkit-scrollbar {
+        width: 2px;
+      }
+      .playlist-scroll-area::-webkit-scrollbar-thumb {
+        background: var(--neon-blue);
       }
       /* 赛博链接卡片基础样式 */
       .cyber-link-card {
@@ -551,7 +544,7 @@
     </div>
 
     <div class="container" id="main-container">
-      <audio id="cyber-player" preload="auto"></audio>
+      <audio id="cyber-player" crossorigin="anonymous"></audio>
       <aside>
         <div class="card profile">
           <div class="avatar-wrap">
@@ -577,110 +570,120 @@
           <a href="#" class="nav-link">>> [ 归档 ] DATA_LOGS</a>
           <a href="#" class="nav-link">>> [ 关于 ] IDENTITY_INFO</a>
         </div>
-        <div
-          id="player-console"
-          class="cyber-link-card"
-          style="margin-top: 20px; width: 100%; cursor: default"
-        >
-          <div class="card-inner" style="padding: 12px; display: block">
-            <div
-              style="
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 8px;
-              "
-            >
-              <span
-                style="
-                  font-size: 0.65em;
-                  color: var(--neon-blue);
-                  opacity: 0.6;
-                  letter-spacing: 2px;
-                "
-                >AUDIO_MODULE_v1.0</span
-              >
-              <span class="status" style="margin: 0; font-size: 0.7em">
-                <span class="pulse-dot"></span> CONNECTION_LIVE
-              </span>
-            </div>
+        <div id="player-console" class="card">
+          <h3 class="sidebar-title">
+            <span class="status-dot"></span>[音乐播放器]SYNTHWAVE PLAYER
+          </h3>
 
-            <div
-              id="current-track-name"
-              style="
-                font-family: monospace;
-                font-size: 0.8em;
-                color: #fff;
-                height: 1.5em;
-                overflow: hidden;
-                margin-bottom: 10px;
-                border-left: 2px solid var(--neon-blue);
-                padding-left: 8px;
-                white-space: nowrap;
-                text-overflow: ellipsis;
-              "
-            >
-              SYSTEM_IDLE...
-            </div>
+          <div
+            id="current-track-name"
+            style="
+              font-size: 12px;
+              color: var(--text-cyan);
+              margin-bottom: 10px;
+              font-family: monospace;
+            "
+          >
+            > SYSTEM_IDLE...
+          </div>
 
-            <div style="display: flex; gap: 12px; align-items: center">
-              <div
-                onclick="togglePlay()"
-                id="play-btn"
-                style="
-                  cursor: pointer;
-                  color: var(--neon-blue);
-                  flex-shrink: 0;
-                  transition: transform 0.2s;
-                "
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 15px;
+              margin-bottom: 15px;
+            "
+          >
+            <div
+              id="play-btn"
+              onclick="togglePlay()"
+              style="cursor: pointer; color: var(--neon-blue)"
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path
+                  id="play-icon-path"
                   fill="currentColor"
-                  style="filter: drop-shadow(0 0 5px var(--neon-blue))"
-                >
-                  <path id="play-icon-path" d="M8 5v14l11-7z" />
-                </svg>
-              </div>
-
+                  d="M8 5v14l11-7z"
+                ></path>
+              </svg>
+            </div>
+            <div
+              style="
+                flex-grow: 1;
+                height: 1px;
+                background: rgba(0, 217, 255, 0.1);
+                position: relative;
+              "
+            >
               <div
+                id="play-progress"
                 style="
-                  flex-grow: 1;
-                  height: 4px;
-                  background: rgba(0, 243, 255, 0.1);
-                  position: relative;
-                  border-radius: 2px;
-                  overflow: hidden;
+                  height: 100%;
+                  background: var(--neon-blue);
+                  width: 0%;
+                  box-shadow: var(--neon-glow);
                 "
+              ></div>
+            </div>
+          </div>
+
+          <div class="fixed-playlist">
+            <div class="link-text" style="margin-bottom: 8px">
+              <span class="label">[ STORAGE_INDEX ]</span>
+            </div>
+            <div
+              class="playlist-scroll-area"
+              style="max-height: 120px; overflow-y: auto"
+            >
+              <a
+                class="nav-link playlist-item"
+                onclick="playTrack('ClearText.mp3', 'CLEARTEXT')"
               >
-                <div
-                  style="
-                    position: absolute;
-                    width: 100%;
-                    height: 100%;
-                    background: repeating-linear-gradient(
-                      90deg,
-                      transparent,
-                      transparent 4px,
-                      rgba(0, 243, 255, 0.05) 4px,
-                      rgba(0, 243, 255, 0.05) 5px
-                    );
-                  "
-                ></div>
-                <div
-                  id="play-progress"
-                  style="
-                    position: absolute;
-                    width: 0%;
-                    height: 100%;
-                    background: var(--neon-blue);
-                    box-shadow: 0 0 10px var(--neon-blue);
-                    transition: width 0.2s linear;
-                  "
-                ></div>
-              </div>
+                >> 01. ClearText.mp3
+              </a>
+              <a
+                class="nav-link playlist-item"
+                onclick="playTrack('Payload.mp3', 'PAYLOAD')"
+              >
+                >> 02. Payload.mp3
+              </a>
+              <a
+                class="nav-link playlist-item"
+                onclick="playTrack('Irritations.mp3', 'IRRITATIONS')"
+              >
+                >> 03. Irritations.mp3
+              </a>
+              <a
+                class="nav-link playlist-item"
+                onclick="playTrack('Recursion.mp3', 'RECUSRION')"
+              >
+                >> 04. Recursion.mp3
+              </a>
+              <a
+                class="nav-link playlist-item"
+                onclick="playTrack('Broken_Boy.mp3', 'BROKEN_BOY')"
+              >
+                >> 05. Broken_Boy.mp3
+              </a>
+              <a
+                class="nav-link playlist-item"
+                onclick="playTrack('Outrun_the_Wolves.mp3', 'OUTRUN_THE_WOLVES')"
+              >
+                >> 06. Outrun_the_Wolves.mp3
+              </a>
+              <a
+                class="nav-link playlist-item"
+                onclick="playTrack('Tetrameth.mp3', 'TETRAMETH')"
+              >
+                >> 07. Tetrameth.mp3
+              </a>
+              <a
+                class="nav-link playlist-item"
+                onclick="playTrack('The_Quickening.mp3', 'THE_QUICKENING')"
+              >
+                >> 08. The_Quickening.mp3
+              </a>
             </div>
           </div>
         </div>
@@ -888,114 +891,73 @@
       </aside>
     </div>
     <script>
-      // --- 音频系统核心变量 (确保不重复声明) ---
-      let audioCtx, analyser, dataArray, canvasCtx, vCanvas;
+      // 统一图标路径
       const ICON_PLAY = "M8 5v14l11-7z";
       const ICON_PAUSE = "M6 19h4V5H6v14zm8-14v14h4V5h-4z";
 
-      // 1. 初始化分析器 (在第一次点播时触发)
-      const initVisualizer = (audioElement) => {
-        if (audioCtx) return;
-        try {
-          vCanvas = document.getElementById("visualizer");
-          canvasCtx = vCanvas.getContext("2d");
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-          analyser = audioCtx.createAnalyser();
-          analyser.fftSize = 256;
-          analyser.smoothingTimeConstant = 0.8;
-          const source = audioCtx.createMediaElementSource(audioElement);
-          source.connect(analyser);
-          analyser.connect(audioCtx.destination);
-
-          const resize = () => {
-            vCanvas.width = window.innerWidth;
-            vCanvas.height = window.innerHeight;
-          };
-          window.addEventListener("resize", resize);
-          resize();
-          renderFrame();
-        } catch (e) {
-          console.error("Visualizer error:", e);
-        }
-      };
-
-      // 2. 绘图循环
-      const renderFrame = () => {
-        requestAnimationFrame(renderFrame);
-        const bufferLength = analyser.frequencyBinCount;
-        dataArray = new Uint8Array(bufferLength);
-        analyser.getByteFrequencyData(dataArray);
-
-        canvasCtx.clearRect(0, 0, vCanvas.width, vCanvas.height);
-        const barWidth = (vCanvas.width / bufferLength) * 2.5;
-        let x = 0;
-
-        for (let i = 0; i < bufferLength; i++) {
-          const barHeight = (dataArray[i] / 255) * vCanvas.height * 0.4;
-          const alpha = (dataArray[i] / 255) * 0.6;
-          canvasCtx.fillStyle = `rgba(0, 243, 255, ${alpha})`;
-          canvasCtx.fillRect(
-            x,
-            vCanvas.height - barHeight,
-            barWidth - 1,
-            barHeight,
-          );
-          x += barWidth;
-        }
-      };
-
-      const playTrack = (fileName, trackTitle) => {
-        // 【信号灯 1】：验证函数是否被调用
-        console.log("Button Clicked!");
-
+      // 1. 核心播放控制：确保初次点击不再跳 ERR
+      window.togglePlay = function () {
         const player = document.getElementById("cyber-player");
-        const trackDisplay = document.getElementById("current-track-name");
+        const path = document.getElementById("play-icon-path");
 
-        // 【信号灯 2】：验证 DOM 元素是否存在
-        if (!player || !trackDisplay) {
-          alert("系统错误：找不到音频播放器组件！请检查 HTML ID 是否正确。");
+        // 逻辑修正：如果 src 为空或处于初始状态（SYSTEM_IDLE）
+        // 这里的判断条件要精准，防止它跳进 ERR 分支
+        if (
+          !player.src ||
+          player.src === window.location.href ||
+          player.src === ""
+        ) {
+          // 直接点名播放第一首，不要走下面的判断逻辑了
+          window.playTrack("ClearText.mp3", "CLEAR_TEXT");
           return;
         }
 
-        const rawBaseUrl =
-          "https://raw.githubusercontent.com/Narlea/narlea.github.io/refs/heads/main/music/";
-        player.src = rawBaseUrl + fileName;
+        // 已有歌曲时的播放/暂停切换
+        if (player.paused) {
+          player
+            .play()
+            .then(() => {
+              if (path) path.setAttribute("d", ICON_PAUSE);
+            })
+            .catch((err) => console.error("Play failed:", err));
+        } else {
+          player.pause();
+          if (path) path.setAttribute("d", ICON_PLAY);
+        }
+      };
 
-        trackDisplay.innerText = `> SYNCING: ${trackTitle}`;
+      // 2. 选歌逻辑：确保更新文字显示
+      window.playTrack = function (fileName, trackTitle) {
+        const player = document.getElementById("cyber-player");
+        const path = document.getElementById("play-icon-path");
+        const trackDisplay = document.getElementById("current-track-name");
 
+        // 构建正确的 CDN 路径
+        const cdnUrl = `https://cdn.jsdelivr.net/gh/Narlea/narlea.github.io@main/music/${encodeURIComponent(fileName)}`;
+
+        // 1. 先更新文字，防止显示 ERR
+        if (trackDisplay)
+          trackDisplay.innerText = `> LOADING: ${trackTitle}...`;
+
+        // 2. 切换音频源
+        player.src = cdnUrl;
+
+        // 3. 开始播放
         player
           .play()
           .then(() => {
-            // 【信号灯 3】：验证播放成功
-            trackDisplay.innerText = `> PLAYING: ${trackTitle}`;
-            const path = document.getElementById("play-icon-path");
+            // 播放成功后显示正式状态
+            if (trackDisplay)
+              trackDisplay.innerText = `> PLAYING: ${trackTitle}`;
             if (path) path.setAttribute("d", ICON_PAUSE);
           })
           .catch((e) => {
-            // 【信号灯 4】：捕获具体错误
-            console.error("Playback failed:", e);
-            trackDisplay.innerText = `> ERR: ${e.name}`;
-            if (e.name === "NotAllowedError") {
-              alert("浏览器拦截：请先点击一下网页背景再尝试播放。");
-            } else {
-              alert("播放失败，请查看 F12 控制台报错。");
-            }
+            // 只有真正加载失败时才报错
+            if (trackDisplay) trackDisplay.innerText = `> ERR: LOAD_FAILED`;
+            console.error("Playback error:", e);
           });
       };
 
-      // 4. 播放/暂停切换
-      const togglePlay = () => {
-        const player = document.getElementById("cyber-player");
-        const path = document.getElementById("play-icon-path");
-        if (!player.src) return;
-        if (player.paused) {
-          player.play();
-          path.setAttribute("d", ICON_PAUSE);
-        } else {
-          player.pause();
-          path.setAttribute("d", ICON_PLAY);
-        }
-      };
       // 升级版函数：增加了一个 iconType 参数
       const createCard = (url, label, title, iconType = "github") => {
         // 预设几种常用的图标路径
@@ -1119,40 +1081,6 @@
 
       // --- 详情页映射 ---
       const articles = {
-        音频档案库: `
-            <h3>SYSTEM_AUDIO_NODES</h3>
-            <p>从本地卫星仓库提取的音频数据：</p>
-
-            <div onclick="playTrack('你的文件名1.mp3', '档案_01')" class="cyber-link-card" style="cursor:pointer; margin-bottom: 12px;">
-                <div class="card-inner">
-                    <div class="link-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle>
-                        </svg>
-                    </div>
-                    <div class="link-text">
-                        <span class="label">AUDIO_NODE_01</span>
-                        <span class="title">点击加载音频档案 01</span>
-                        <span class="status"><span class="pulse-dot"></span> CONNECTION_STABLE</span>
-                    </div>
-                </div>
-            </div>
-
-            <div onclick="playTrack('你的文件名2.mp3', '档案_02')" class="cyber-link-card" style="cursor:pointer;">
-                <div class="card-inner">
-                    <div class="link-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle>
-                        </svg>
-                    </div>
-                    <div class="link-text">
-                        <span class="label">AUDIO_NODE_02</span>
-                        <span class="title">点击加载音频档案 02</span>
-                        <span class="status"><span class="pulse-dot"></span> CONNECTION_STABLE</span>
-                    </div>
-                </div>
-            </div>
-        `,
         CUDA的核心概念: `
               <h3>CUDA的核心概念</h3>
               <p>1. 主机（Host）：CPU及其内存。  </p>
@@ -1173,7 +1101,7 @@
               
               <p>2026/03/09 - 个人博客正式建立，完善了整体框架和基础功能</p>
               <p>2026/03/11 - 新增网页进入动画和炫酷的链接卡牌样式</p>
-              <p>2026/03/12 - 完善了分类节点筛选功能</p>
+              <p>2026/03/12 - 完善了分类节点筛选功能；新增音乐播放器功能，现在可以在主页里尽情体验合成器浪潮了</p>
               `,
 
         "OPENCLAW_2026.3.2的两项bug": `
@@ -1193,7 +1121,7 @@
               ${createCard("https://www.youtube.com/", "SOURCE_URL", "YOUTUBE", "youtube")}
               ${createCard("https://www.csdn.com/", "SOURCE_URL", "CSDN", "csdn")}
               ${createCard("https://www.bilibili.com/", "SOURCE_URL", "BILIBILI", "bilibili")}
-              ${createCard("", "EXTERNAL_LINK", "未知传送门", "link")}
+              ${createCard("", "EXTERNAL_LINK", "UNKNOWN", "link")}
           `,
       };
 
