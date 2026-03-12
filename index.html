@@ -9,6 +9,28 @@
       type="image/png"
     />
     <style>
+      .pulse-dot {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        background-color: var(--neon-blue);
+        border-radius: 50%;
+        margin-right: 6px;
+        box-shadow: 0 0 10px var(--neon-blue);
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 0.4;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0.4;
+        }
+      }
       /* 赛博链接卡片基础样式 */
       .cyber-link-card {
         display: block;
@@ -529,6 +551,7 @@
     </div>
 
     <div class="container" id="main-container">
+      <audio id="cyber-player" preload="auto"></audio>
       <aside>
         <div class="card profile">
           <div class="avatar-wrap">
@@ -554,6 +577,129 @@
           <a href="#" class="nav-link">>> [ 归档 ] DATA_LOGS</a>
           <a href="#" class="nav-link">>> [ 关于 ] IDENTITY_INFO</a>
         </div>
+        <div
+          id="player-console"
+          class="cyber-link-card"
+          style="margin-top: 20px; width: 100%; cursor: default"
+        >
+          <div class="card-inner" style="padding: 12px; display: block">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 8px;
+              "
+            >
+              <span
+                style="
+                  font-size: 0.65em;
+                  color: var(--neon-blue);
+                  opacity: 0.6;
+                  letter-spacing: 2px;
+                "
+                >AUDIO_MODULE_v1.0</span
+              >
+              <span class="status" style="margin: 0; font-size: 0.7em">
+                <span class="pulse-dot"></span> CONNECTION_LIVE
+              </span>
+            </div>
+
+            <div
+              id="current-track-name"
+              style="
+                font-family: monospace;
+                font-size: 0.8em;
+                color: #fff;
+                height: 1.5em;
+                overflow: hidden;
+                margin-bottom: 10px;
+                border-left: 2px solid var(--neon-blue);
+                padding-left: 8px;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+              "
+            >
+              SYSTEM_IDLE...
+            </div>
+
+            <div style="display: flex; gap: 12px; align-items: center">
+              <div
+                onclick="togglePlay()"
+                id="play-btn"
+                style="
+                  cursor: pointer;
+                  color: var(--neon-blue);
+                  flex-shrink: 0;
+                  transition: transform 0.2s;
+                "
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  style="filter: drop-shadow(0 0 5px var(--neon-blue))"
+                >
+                  <path id="play-icon-path" d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+
+              <div
+                style="
+                  flex-grow: 1;
+                  height: 4px;
+                  background: rgba(0, 243, 255, 0.1);
+                  position: relative;
+                  border-radius: 2px;
+                  overflow: hidden;
+                "
+              >
+                <div
+                  style="
+                    position: absolute;
+                    width: 100%;
+                    height: 100%;
+                    background: repeating-linear-gradient(
+                      90deg,
+                      transparent,
+                      transparent 4px,
+                      rgba(0, 243, 255, 0.05) 4px,
+                      rgba(0, 243, 255, 0.05) 5px
+                    );
+                  "
+                ></div>
+                <div
+                  id="play-progress"
+                  style="
+                    position: absolute;
+                    width: 0%;
+                    height: 100%;
+                    background: var(--neon-blue);
+                    box-shadow: 0 0 10px var(--neon-blue);
+                    transition: width 0.2s linear;
+                  "
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <audio id="cyber-player" preload="auto"></audio>
+
+        <canvas
+          id="visualizer"
+          style="
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.12;
+            z-index: -1;
+          "
+        ></canvas>
       </aside>
 
       <main id="main-content">
@@ -566,8 +712,8 @@
             </p>
           </div>
 
-          <div class="card post-card" data-category="CUDA">
-            <div class="post-meta">DATE: 2026.03.09 / CATEGORY: CUDA</div>
+          <div class="card post-card" data-category="AI_INFRA">
+            <div class="post-meta">DATE: 2026.03.09 / CATEGORY: AI_INFRA</div>
             <h2 class="post-title">CUDA的核心概念</h2>
             <p>一份来自初学者的CUDA核心名词概念的阐述...</p>
             <div class="btn-access" onclick="showDetail('CUDA的核心概念')">
@@ -651,25 +797,14 @@
             >
             <span
               class="filter-tag"
-              onclick="filterPosts('CUDA', this)"
+              onclick="filterPosts('AI_INFRA', this)"
               style="
                 border: 1px solid rgba(0, 217, 255, 0.4);
                 padding: 4px 8px;
                 font-size: 11px;
                 cursor: pointer;
               "
-              ># CUDA</span
-            >
-            <span
-              class="filter-tag"
-              onclick="filterPosts('TRITON', this)"
-              style="
-                border: 1px solid rgba(0, 217, 255, 0.4);
-                padding: 4px 8px;
-                font-size: 11px;
-                cursor: pointer;
-              "
-              ># TRITON</span
+              ># AI_INFRA</span
             >
             <span
               class="filter-tag"
@@ -752,8 +887,103 @@
         </div>
       </aside>
     </div>
-
     <script>
+      // --- 音频系统核心变量 (确保不重复声明) ---
+      let audioCtx, analyser, dataArray, canvasCtx, vCanvas;
+      const ICON_PLAY = "M8 5v14l11-7z";
+      const ICON_PAUSE = "M6 19h4V5H6v14zm8-14v14h4V5h-4z";
+
+      // 1. 初始化分析器 (在第一次点播时触发)
+      const initVisualizer = (audioElement) => {
+        if (audioCtx) return;
+        try {
+          vCanvas = document.getElementById("visualizer");
+          canvasCtx = vCanvas.getContext("2d");
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 256;
+          analyser.smoothingTimeConstant = 0.8;
+          const source = audioCtx.createMediaElementSource(audioElement);
+          source.connect(analyser);
+          analyser.connect(audioCtx.destination);
+
+          const resize = () => {
+            vCanvas.width = window.innerWidth;
+            vCanvas.height = window.innerHeight;
+          };
+          window.addEventListener("resize", resize);
+          resize();
+          renderFrame();
+        } catch (e) {
+          console.error("Visualizer error:", e);
+        }
+      };
+
+      // 2. 绘图循环
+      const renderFrame = () => {
+        requestAnimationFrame(renderFrame);
+        const bufferLength = analyser.frequencyBinCount;
+        dataArray = new Uint8Array(bufferLength);
+        analyser.getByteFrequencyData(dataArray);
+
+        canvasCtx.clearRect(0, 0, vCanvas.width, vCanvas.height);
+        const barWidth = (vCanvas.width / bufferLength) * 2.5;
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+          const barHeight = (dataArray[i] / 255) * vCanvas.height * 0.4;
+          const alpha = (dataArray[i] / 255) * 0.6;
+          canvasCtx.fillStyle = `rgba(0, 243, 255, ${alpha})`;
+          canvasCtx.fillRect(
+            x,
+            vCanvas.height - barHeight,
+            barWidth - 1,
+            barHeight,
+          );
+          x += barWidth;
+        }
+      };
+
+      // 3. 歌曲点播逻辑
+      const playTrack = (fileName, trackTitle) => {
+        const player = document.getElementById("cyber-player");
+        const trackDisplay = document.getElementById("current-track-name");
+        const path = document.getElementById("play-icon-path");
+
+        // 设置路径：根据你的 GitHub 结构
+        player.src = `./music/${fileName}`;
+        trackDisplay.innerText = `> SYNCING: ${trackTitle}`;
+
+        player
+          .play()
+          .then(() => {
+            trackDisplay.innerText = `> PLAYING: ${trackTitle}`;
+            path.setAttribute("d", ICON_PAUSE);
+            initVisualizer(player);
+          })
+          .catch(() => {
+            trackDisplay.innerText = "> ERR: INTERACT_REQ";
+          });
+
+        player.ontimeupdate = () => {
+          const prog = (player.currentTime / player.duration) * 100 || 0;
+          document.getElementById("play-progress").style.width = `${prog}%`;
+        };
+      };
+
+      // 4. 播放/暂停切换
+      const togglePlay = () => {
+        const player = document.getElementById("cyber-player");
+        const path = document.getElementById("play-icon-path");
+        if (!player.src) return;
+        if (player.paused) {
+          player.play();
+          path.setAttribute("d", ICON_PAUSE);
+        } else {
+          player.pause();
+          path.setAttribute("d", ICON_PLAY);
+        }
+      };
       // 升级版函数：增加了一个 iconType 参数
       const createCard = (url, label, title, iconType = "github") => {
         // 预设几种常用的图标路径
@@ -877,6 +1107,40 @@
 
       // --- 详情页映射 ---
       const articles = {
+        音频档案库: `
+            <h3>SYSTEM_AUDIO_NODES</h3>
+            <p>从本地卫星仓库提取的音频数据：</p>
+
+            <div onclick="playTrack('你的文件名1.mp3', '档案_01')" class="cyber-link-card" style="cursor:pointer; margin-bottom: 12px;">
+                <div class="card-inner">
+                    <div class="link-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle>
+                        </svg>
+                    </div>
+                    <div class="link-text">
+                        <span class="label">AUDIO_NODE_01</span>
+                        <span class="title">点击加载音频档案 01</span>
+                        <span class="status"><span class="pulse-dot"></span> CONNECTION_STABLE</span>
+                    </div>
+                </div>
+            </div>
+
+            <div onclick="playTrack('你的文件名2.mp3', '档案_02')" class="cyber-link-card" style="cursor:pointer;">
+                <div class="card-inner">
+                    <div class="link-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle>
+                        </svg>
+                    </div>
+                    <div class="link-text">
+                        <span class="label">AUDIO_NODE_02</span>
+                        <span class="title">点击加载音频档案 02</span>
+                        <span class="status"><span class="pulse-dot"></span> CONNECTION_STABLE</span>
+                    </div>
+                </div>
+            </div>
+        `,
         CUDA的核心概念: `
               <h3>CUDA的核心概念</h3>
               <p>1. 主机（Host）：CPU及其内存。  </p>
@@ -909,7 +1173,7 @@
               ${createCard("https://github.com/openclaw/openclaw/issues/37198", "ISSUES_URL", "OPENCLAW / ISSUES", "github")}
           <p>OS:macOS (Mac mini)</p>
           `,
-        "SVG图标": `
+        SVG图标: `
               <h3>SVG图标</h3>
               <p>展示一些未来会应用到blog中的SVG图标</p>
               ${createCard("https://github.com/", "SOURCE_URL", "GITHUB", "github")}
@@ -917,6 +1181,7 @@
               ${createCard("https://www.youtube.com/", "SOURCE_URL", "YOUTUBE", "youtube")}
               ${createCard("https://www.csdn.com/", "SOURCE_URL", "CSDN", "csdn")}
               ${createCard("https://www.bilibili.com/", "SOURCE_URL", "BILIBILI", "bilibili")}
+              ${createCard("", "EXTERNAL_LINK", "未知传送门", "link")}
           `,
       };
 
