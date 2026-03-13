@@ -9,6 +9,23 @@
       type="image/png"
     />
     <style>
+      #visualizer-canvas {
+        filter: blur(0.5px) drop-shadow(0 0 5px rgba(0, 242, 255, 0.5));
+      }
+      /* 让原生滑动条变细线 */
+      #volume-slider::-webkit-slider-runnable-track {
+        height: 2px;
+        background: rgba(0, 242, 255, 0.2);
+      }
+      #volume-slider::-webkit-slider-thumb {
+        appearance: none;
+        width: 6px;
+        height: 6px;
+        background: var(--neon-blue);
+        border-radius: 50%;
+        margin-top: -2px;
+        box-shadow: 0 0 5px var(--neon-blue);
+      }
       /* 播放器内的 nav-link 微调：去掉默认下划线，确保间距统一 */
       .playlist-item {
         cursor: pointer;
@@ -284,6 +301,8 @@
         padding: 20px;
         min-height: 100vh;
         overflow-x: hidden;
+        background-size: 30px 30px;
+        transition: background-size 0.1s cubic-bezier(0.22, 1, 0.36, 1);
       }
 
       /* 扫描线动画 */
@@ -470,6 +489,19 @@
     </style>
   </head>
   <body>
+    <canvas
+      id="visualizer-canvas"
+      style="
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 200px;
+        pointer-events: none;
+        z-index: -1;
+        opacity: 0.6;
+      "
+    ></canvas>
     <div id="boot-gate">
       <div class="gate-half" id="gate-left">
         <svg class="circuit-svg" viewBox="0 0 400 400">
@@ -591,16 +623,16 @@
             style="
               display: flex;
               align-items: center;
-              gap: 15px;
+              gap: 12px;
               margin-bottom: 15px;
             "
           >
             <div
               id="play-btn"
               onclick="togglePlay()"
-              style="cursor: pointer; color: var(--neon-blue)"
+              style="cursor: pointer; color: var(--neon-blue); flex-shrink: 0"
             >
-              <svg viewBox="0 0 24 24" width="20" height="20">
+              <svg viewBox="0 0 24 24" width="18" height="18">
                 <path
                   id="play-icon-path"
                   fill="currentColor"
@@ -608,13 +640,17 @@
                 ></path>
               </svg>
             </div>
+
             <div
+              class="progress-container"
               style="
                 flex-grow: 1;
-                height: 1px;
-                background: rgba(0, 217, 255, 0.1);
+                height: 2px;
+                background: rgba(0, 242, 255, 0.1);
                 position: relative;
+                cursor: pointer;
               "
+              onclick="seek(event)"
             >
               <div
                 id="play-progress"
@@ -623,8 +659,66 @@
                   background: var(--neon-blue);
                   width: 0%;
                   box-shadow: var(--neon-glow);
+                  position: relative;
                 "
-              ></div>
+              >
+                <div
+                  class="pulse-dot"
+                  style="
+                    position: absolute;
+                    right: -3px;
+                    top: -2px;
+                    margin: 0;
+                    width: 6px;
+                    height: 6px;
+                  "
+                ></div>
+              </div>
+            </div>
+
+            <div
+              id="volume-group"
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-shrink: 0;
+              "
+            >
+              <div
+                id="volume-btn"
+                onclick="toggleMute()"
+                style="cursor: pointer; color: var(--neon-blue); opacity: 0.7"
+              >
+                <svg
+                  id="volume-icon"
+                  viewBox="0 0 24 24"
+                  width="16"
+                  height="16"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"
+                  ></path>
+                </svg>
+              </div>
+              <input
+                type="range"
+                id="volume-slider"
+                min="0"
+                max="1"
+                step="0.1"
+                value="1"
+                oninput="adjustVolume(this.value)"
+                style="
+                  width: 40px;
+                  height: 2px;
+                  appearance: none;
+                  background: rgba(0, 242, 255, 0.2);
+                  outline: none;
+                  cursor: pointer;
+                "
+              />
             </div>
           </div>
 
@@ -668,7 +762,9 @@
               </a>
               <a
                 class="nav-link playlist-item"
-                onclick="playTrack('Outrun_the_Wolves.mp3', 'OUTRUN_THE_WOLVES')"
+                onclick="
+                  playTrack('Outrun_the_Wolves.mp3', 'OUTRUN_THE_WOLVES')
+                "
               >
                 >> 06. Outrun_the_Wolves.mp3
               </a>
@@ -892,71 +988,213 @@
     </div>
     <script>
       // 统一图标路径
+      // --- [1. 全局配置与状态] ---
+      let audioCtx, analyser, dataArray, source;
       const ICON_PLAY = "M8 5v14l11-7z";
       const ICON_PAUSE = "M6 19h4V5H6v14zm8-14v14h4V5h-4z";
 
-      // 1. 核心播放控制：确保初次点击不再跳 ERR
+      // --- [2. 核心功能函数] ---
+      // 这些必须放在外面，HTML 里的按钮才能点得动
+
+      window.adjustVolume = function (val) {
+        const player = document.getElementById("cyber-player");
+        if (player) {
+          player.volume = val;
+          player.muted = val == 0;
+        }
+        const vBtn = document.getElementById("volume-btn");
+        if (vBtn) vBtn.style.opacity = val == 0 ? "0.3" : "0.7";
+      };
+
+      window.toggleMute = function () {
+        const player = document.getElementById("cyber-player");
+        const slider = document.getElementById("volume-slider");
+        if (!player) return;
+        player.muted = !player.muted;
+        if (slider) slider.value = player.muted ? 0 : player.volume;
+        const vBtn = document.getElementById("volume-btn");
+        if (vBtn) vBtn.style.opacity = player.muted ? "0.3" : "0.7";
+      };
+
+      window.seek = function (e) {
+        const player = document.getElementById("cyber-player");
+        if (!player) return;
+        const container = e.currentTarget;
+        const rect = container.getBoundingClientRect();
+        const pos = (e.clientX - rect.left) / rect.width;
+        if (player.duration) {
+          player.currentTime = pos * player.duration;
+        }
+      };
+
+      // --- [3. 可视化渲染引擎] ---
+
+      function initVisualizer() {
+        const player = document.getElementById("cyber-player");
+        if (!audioCtx && player) {
+          try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser();
+            source = audioCtx.createMediaElementSource(player);
+            source.connect(analyser);
+            analyser.connect(audioCtx.destination);
+            analyser.fftSize = 64;
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
+            renderVisuals();
+          } catch (e) {
+            console.error("Visualizer error:", e);
+          }
+        }
+      }
+
+      function renderVisuals() {
+        requestAnimationFrame(renderVisuals);
+        if (!analyser) return;
+
+        const canvas = document.getElementById("visualizer-canvas");
+        const ctx = canvas.getContext("2d");
+
+        if (canvas.width !== window.innerWidth) {
+          canvas.width = window.innerWidth;
+          canvas.height = 200;
+        }
+
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        analyser.getByteFrequencyData(dataArray);
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // --- 调整：让矩形更大、更清晰 ---
+        const segmentHeight = 8; // 增加矩形高度 (从5到8)
+        const segmentGap = 2; // 增加垂直间距 (从1.5到2)
+        const barWidth = 15; // 显著增加柱子宽度 (从8到15)
+        const barGap = 5; // 增加柱子间距 (从3到5)
+
+        const totalBars = Math.floor(canvas.width / (barWidth + barGap));
+
+        for (let i = 0; i < totalBars; i++) {
+          // 对称索引映射
+          let index;
+          if (i < totalBars / 2) {
+            index = Math.floor(i * (bufferLength / totalBars));
+          } else {
+            index = Math.floor((totalBars - i) * (bufferLength / totalBars));
+          }
+
+          // --- 核心改进：解决全满问题 ---
+          // 1. 使用 Math.pow 降低灵敏度，让低能量和高能量拉开差距
+          let rawData = dataArray[index] / 255; // 归一化到 0-1
+          let compressedData = Math.pow(rawData, 1.5); // 指数压缩，防止容易全满
+
+          // 2. 计算高度，增加中间权重
+          const distanceFromCenter = Math.abs(i - totalBars / 2);
+          const centerBoost = 1.4 - distanceFromCenter / (totalBars / 2);
+          const barHeight = compressedData * canvas.height * 1.2 * centerBoost;
+
+          const numSegments = Math.floor(
+            barHeight / (segmentHeight + segmentGap),
+          );
+          const x = i * (barWidth + barGap);
+
+          for (let j = 0; j < numSegments; j++) {
+            // 越往上颜色越亮
+            const opacity = j / 20 + 0.3; // 20个左右的矩形就足够了
+            ctx.fillStyle = `rgba(0, 242, 255, ${Math.min(opacity, 0.8)})`;
+
+            const y = canvas.height - j * (segmentHeight + segmentGap);
+
+            // 绘制圆角矩形（可选，增加科技感）或标准矩形
+            ctx.fillRect(x, y, barWidth, -segmentHeight);
+          }
+        }
+      }
+
+      // --- [4. 播放控制逻辑] ---
+
       window.togglePlay = function () {
         const player = document.getElementById("cyber-player");
         const path = document.getElementById("play-icon-path");
+        if (!player) return;
 
-        // 逻辑修正：如果 src 为空或处于初始状态（SYSTEM_IDLE）
-        // 这里的判断条件要精准，防止它跳进 ERR 分支
         if (
           !player.src ||
           player.src === window.location.href ||
           player.src === ""
         ) {
-          // 直接点名播放第一首，不要走下面的判断逻辑了
           window.playTrack("ClearText.mp3", "CLEAR_TEXT");
           return;
         }
 
-        // 已有歌曲时的播放/暂停切换
         if (player.paused) {
-          player
-            .play()
-            .then(() => {
-              if (path) path.setAttribute("d", ICON_PAUSE);
-            })
-            .catch((err) => console.error("Play failed:", err));
+          player.play().then(() => {
+            if (path) path.setAttribute("d", ICON_PAUSE);
+          });
         } else {
           player.pause();
           if (path) path.setAttribute("d", ICON_PLAY);
         }
       };
 
-      // 2. 选歌逻辑：确保更新文字显示
       window.playTrack = function (fileName, trackTitle) {
         const player = document.getElementById("cyber-player");
         const path = document.getElementById("play-icon-path");
         const trackDisplay = document.getElementById("current-track-name");
+        if (!player) return;
 
-        // 构建正确的 CDN 路径
+        // 1. 必须在设置 src 前开启跨域，否则分析器拿不到数据
+        player.crossOrigin = "anonymous";
+
+        // 2. 初始化可视化（如果还没初始化）
+        initVisualizer();
+        if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+
+        // 3. 构建 URL
         const cdnUrl = `https://cdn.jsdelivr.net/gh/Narlea/narlea.github.io@main/music/${encodeURIComponent(fileName)}`;
 
-        // 1. 先更新文字，防止显示 ERR
+        // 4. 先更新 UI 状态，给用户反馈
         if (trackDisplay)
           trackDisplay.innerText = `> LOADING: ${trackTitle}...`;
 
-        // 2. 切换音频源
+        // 5. 切换音频源并重置播放器状态
         player.src = cdnUrl;
+        player.load(); // 显式调用 load() 确保新源被识别
 
-        // 3. 开始播放
+        // 6. 执行播放
         player
           .play()
           .then(() => {
-            // 播放成功后显示正式状态
+            // 只有真正播出来了，才更新为 PLAYING 状态
             if (trackDisplay)
               trackDisplay.innerText = `> PLAYING: ${trackTitle}`;
             if (path) path.setAttribute("d", ICON_PAUSE);
           })
           .catch((e) => {
-            // 只有真正加载失败时才报错
-            if (trackDisplay) trackDisplay.innerText = `> ERR: LOAD_FAILED`;
-            console.error("Playback error:", e);
+            // 捕获特定错误：如果是还没加载完，不要直接跳 ERR，给它一点重试机会
+            if (
+              e.name === "NotSupportedError" ||
+              e.name === "NotAllowedError"
+            ) {
+              console.warn("Autoplay blocked or format not supported");
+            } else {
+              if (trackDisplay) trackDisplay.innerText = `> ERR: LOAD_FAILED`;
+            }
           });
       };
+
+      // --- [5. 进度条自动更新] ---
+      document.addEventListener("DOMContentLoaded", () => {
+        const player = document.getElementById("cyber-player");
+        if (player) {
+          player.ontimeupdate = function () {
+            const progress = document.getElementById("play-progress");
+            if (progress && this.duration) {
+              const percent = (this.currentTime / this.duration) * 100;
+              progress.style.width = percent + "%";
+            }
+          };
+        }
+      });
 
       // 升级版函数：增加了一个 iconType 参数
       const createCard = (url, label, title, iconType = "github") => {
@@ -1102,6 +1340,7 @@
               <p>2026/03/09 - 个人博客正式建立，完善了整体框架和基础功能</p>
               <p>2026/03/11 - 新增网页进入动画和炫酷的链接卡牌样式</p>
               <p>2026/03/12 - 完善了分类节点筛选功能；新增音乐播放器功能，现在可以在主页里尽情体验合成器浪潮了</p>
+              <p>2026/03/13 - 优化了音乐播放器的功能，新增了音量控制和进度条控制；新增音乐可视化功能！</p>
               `,
 
         "OPENCLAW_2026.3.2的两项bug": `
