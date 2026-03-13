@@ -604,7 +604,7 @@
         </div>
         <div id="player-console" class="card">
           <h3 class="sidebar-title">
-            <span class="status-dot"></span>[音乐播放器]SYNTHWAVE PLAYER
+            <span class="status-dot"></span>[音乐播放器] SYNTHWAVE PLAYER
           </h3>
 
           <div
@@ -987,6 +987,36 @@
       </aside>
     </div>
     <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const postList = document.getElementById("post-list");
+        // 获取所有的文章卡片（排除系统欢迎词，如果你想让欢迎词永远在第一位）
+        const cards = Array.from(postList.querySelectorAll(".post-card"));
+
+        // 执行排序逻辑
+        cards.sort((a, b) => {
+          // 提取日期字符串，例如 "2026.03.12"
+          const dateA = a
+            .querySelector(".post-meta")
+            .innerText.match(/\d{4}\.\d{2}\.\d{2}/)[0];
+          const dateB = b
+            .querySelector(".post-meta")
+            .innerText.match(/\d{4}\.\d{2}\.\d{2}/)[0];
+
+          // 转换为时间戳进行比较 (降序：新的在前)
+          return (
+            new Date(dateB.replace(/\./g, "/")) -
+            new Date(dateA.replace(/\./g, "/"))
+          );
+        });
+
+        // 清空旧列表（保留系统消息 system-msg，如果你想让欢迎词雷打不动）
+        const systemMsg = postList.querySelector(".system-msg");
+        postList.innerHTML = "";
+        if (systemMsg) postList.appendChild(systemMsg);
+
+        // 将排序后的卡片重新插入
+        cards.forEach((card) => postList.appendChild(card));
+      });
       // 统一图标路径
       // --- [1. 全局配置与状态] ---
       let audioCtx, analyser, dataArray, source;
