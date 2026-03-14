@@ -847,8 +847,16 @@
               DATE: 2026.03.12 / CATEGORY: WEB_FRONTEND
             </div>
             <h2 class="post-title">SVG图标</h2>
-            <p>一些未来会应用到blog中的SVG图标</p>
+            <p>一些未来会应用到blog中的SVG图标...</p>
             <div class="btn-access" onclick="showDetail('SVG图标')">
+              ACCESS_DATA_
+            </div>
+          </div>
+          <div class="card post-card" data-category="LATEX">
+            <div class="post-meta">DATE: 2026.03.13 / CATEGORY: LATEX</div>
+            <h2 class="post-title">LATEX基础教程</h2>
+            <p>一份面向新手的LATEX基础教程...</p>
+            <div class="btn-access" onclick="showDetail('LATEX基础教程')">
               ACCESS_DATA_
             </div>
           </div>
@@ -981,6 +989,17 @@
                 cursor: pointer;
               "
               ># AGENT</span
+            >
+            <span
+              class="filter-tag"
+              onclick="filterPosts('LATEX', this)"
+              style="
+                border: 1px solid rgba(0, 217, 255, 0.4);
+                padding: 4px 8px;
+                font-size: 11px;
+                cursor: pointer;
+              "
+              ># LATEX</span
             >
           </div>
         </div>
@@ -1236,6 +1255,7 @@
           csdn: `<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M8.5 14.5c1.1 1.1 2.9 1.1 4 0l1.4 1.4c-1.9 1.9-4.9 1.9-6.8 0-1.9-1.9-1.9-4.9 0-6.8 1.9-1.9 4.9-1.9 6.8 0l-1.4 1.4c-1.1-1.1-2.9-1.1-4 0-1.1 1.1-1.1 2.9 0 4z"/>`,
           link: `<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>`,
           bilibili: `<path d="M17.813 4.653h-.854l1.547-1.567a.74.74 0 1 0-1.046-1.047L14.74 4.803H9.26L6.54 2.039a.74.74 0 0 0-1.046 1.047l1.547 1.567h-.854C4.803 4.653 3.66 5.795 3.66 7.204v7.592c0 1.409 1.143 2.55 2.551 2.55h11.578c1.408 0 2.551-1.141 2.551-2.55V7.204c0-1.409-1.143-2.55-2.551-2.55zM9.277 13.541a1.102 1.102 0 0 1-1.102-1.102v-1.055a1.102 1.102 0 0 1 2.204 0v1.055a1.102 1.102 0 0 1-1.102 1.102zm5.446 0a1.102 1.102 0 0 1-1.102-1.102v-1.055a1.102 1.102 0 0 1 2.204 0v1.055a1.102 1.102 0 0 1-1.102 1.102zM15.303 19.346H8.697a.75.75 0 1 0 0 1.5h6.606a.75.75 0 1 0 0-1.5z"></path>`,
+          baiduyun: `<path d="M17.3 9.61c-.36-2.76-2.72-4.88-5.57-4.88-2.27 0-4.23 1.33-5.15 3.27-.32-.08-.66-.12-1-.12-2.34 0-4.23 1.9-4.23 4.23 0 2.34 1.9 4.23 4.23 4.23h11.72c2.01 0 3.63-1.63 3.63-3.63.01-1.76-1.24-3.22-2.9-3.57zM9.83 11.72c0 .9-.73 1.63-1.63 1.63s-1.63-.73-1.63-1.63c0-.9.73-1.63 1.63-1.63s1.63.73 1.63 1.63zm4.21 0c0 .9-.73 1.63-1.63 1.63s-1.63-.73-1.63-1.63c0-.9.73-1.63 1.63-1.63s1.63.73 1.63 1.63z"></path>`,
         };
 
         return `
@@ -1315,6 +1335,7 @@
         document.getElementById("stat-visit-count").innerText =
           `${visits} 访问`;
       }
+
       // --- 特效控制逻辑 ---
       window.onload = () => {
         updateStats(); // 初始化统计数据
@@ -1371,8 +1392,7 @@
               <p>2026/03/11 - 新增网页进入动画和炫酷的链接卡牌样式</p>
               <p>2026/03/12 - 完善了分类节点筛选功能；新增音乐播放器功能，现在可以在主页里尽情体验合成器浪潮了</p>
               <p>2026/03/13 - 优化了音乐播放器的功能，新增了音量控制和进度条控制；新增音乐可视化功能！</p>
-              `,
-
+          `,
         "OPENCLAW_2026.3.2的两项bug": `
               <h3>1.log未能存储在对应日期的文件里</h3>
               <p>如3月6日的log应存在openclaw-2026-03-06.log文件中，实测中却发现log存在了openclaw-2026-03-05.log中，该问题直到手动重启gateway才会得到缓解</p>
@@ -1390,7 +1410,23 @@
               ${createCard("https://www.youtube.com/", "SOURCE_URL", "YOUTUBE", "youtube")}
               ${createCard("https://www.csdn.com/", "SOURCE_URL", "CSDN", "csdn")}
               ${createCard("https://www.bilibili.com/", "SOURCE_URL", "BILIBILI", "bilibili")}
-              ${createCard("", "EXTERNAL_LINK", "UNKNOWN", "link")}
+              ${createCard("https://www.baidu.com", "SOURCE_URL", "BAIDUYUN", "baiduyun")}
+              ${createCard("", "SOURCE_URL", "UNKNOWN", "link")}
+          `,
+        LATEX基础教程: `
+              <h3>LATEX环境配置</h3>
+              <p>一般推荐使用VScode对LaTeX进行编辑，因此需要进行环境配置，推荐以下视频教程：</p>
+              ${createCard("https://www.bilibili.com/video/BV1sw411t7Zw", "SOURCE_URL", "LATEX环境 / BILIBILI", "bilibili")}
+              <h3>LATEX模板获取</h3>
+              <p>使用LATEX撰写论文最好是使用现成的模板，有了现成的模板之后，只需要按照模板的结构来组织内容即可</p>
+              <p>模板可以在Overleaf模板库中进行下载</p>
+              ${createCard("https://cn.overleaf.com/latex/templates", "SOURCE_URL", "OVERLEAF", "link")}
+              <p>以下是一些我曾经在互联网上收集的一些模板，有需要也可以下载：</p>
+              ${createCard("https://pan.baidu.com/s/1oNacW2oc1ZvQw27xA2zLqQ?pwd=qsw9", "SOURCE_URL", "LATEX模板 / BAIDUYUN", "baiduyun")}
+              <p>如果是投稿会议或期刊，建议直接使用官方提供的模板，通常在官网的For Authors或Submission Guidelines中可以找到</p>
+              <h3>LATEX基础教程</h3>
+              <p>有了模板之后撰写论文其实并不需要多少语法知识，只需要根据需求对模板中的语法进行复制粘贴即可，如果有额外的需求需要对语法进行学习，推荐以下视频教程：</p>
+              ${createCard("https://www.bilibili.com/video/BV1Mc411S75c", "SOURCE_URL", "LATEX教程 / BILIBILI", "bilibili")}
           `,
       };
 
