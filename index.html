@@ -8,7 +8,58 @@
       href="https://raw.githubusercontent.com/Narlea/narlea.github.io/refs/heads/main/assets/icon.png"
       type="image/png"
     />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
     <style>
+      /* 容器设计：外框 */
+      pre[class*="language-"] {
+        background: rgba(2, 8, 13, 0.95) !important;
+        border: 1px solid rgba(0, 242, 255, 0.2);
+        border-left: 3px solid #00f2ff;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        padding: 1.5em 1em 1em 1em;
+        margin: 20px 0;
+        position: relative;
+        border-radius: 2px;
+      }
+
+      /* 右上角的语言标记 */
+      pre[class*="language-"]::before {
+        content: "CODE_BLOCK // " attr(data-language);
+        position: absolute;
+        top: 0;
+        right: 15px;
+        background: rgba(0, 242, 255, 0.1);
+        color: #00f2ff;
+        font-size: 10px;
+        padding: 2px 8px;
+        font-family: monospace;
+        letter-spacing: 1px;
+      }
+
+      /* 行号颜色调整 */
+      .line-numbers .line-numbers-rows {
+        border-right: 1px solid rgba(0, 242, 255, 0.1) !important;
+      }
+
+      /* 语法高亮微调：让青色更亮 */
+      .token.function,
+      .token.keyword {
+        color: #00f2ff !important;
+        text-shadow: 0 0 5px rgba(0, 242, 255, 0.5);
+      }
       #visualizer-canvas {
         filter: blur(0.5px) drop-shadow(0 0 5px rgba(0, 242, 255, 0.5));
       }
@@ -860,6 +911,14 @@
               ACCESS_DATA_
             </div>
           </div>
+          <div class="card post-card" data-category="LLM">
+            <div class="post-meta">DATE: 2026.03.14 / CATEGORY: LLM</div>
+            <h2 class="post-title">在本地部署Qwen模型</h2>
+            <p>一份关于如何在本地环境中部署Qwen模型的教程...</p>
+            <div class="btn-access" onclick="showDetail('在本地部署Qwen模型')">
+              ACCESS_DATA_
+            </div>
+          </div>
         </div>
 
         <div id="post-detail">
@@ -1000,6 +1059,17 @@
                 cursor: pointer;
               "
               ># LATEX</span
+            >
+            <span
+              class="filter-tag"
+              onclick="filterPosts('LLM', this)"
+              style="
+                border: 1px solid rgba(0, 217, 255, 0.4);
+                padding: 4px 8px;
+                font-size: 11px;
+                cursor: pointer;
+              "
+              ># LLM</span
             >
           </div>
         </div>
@@ -1392,6 +1462,7 @@
               <p>2026/03/11 - 新增网页进入动画和炫酷的链接卡牌样式</p>
               <p>2026/03/12 - 完善了分类节点筛选功能；新增音乐播放器功能，现在可以在主页里尽情体验合成器浪潮了</p>
               <p>2026/03/13 - 优化了音乐播放器的功能，新增了音量控制和进度条控制；新增音乐可视化功能！</p>
+              <p>2026/03/14 - 优化了代码框的设计</p>
           `,
         "OPENCLAW_2026.3.2的两项bug": `
               <h3>1.log未能存储在对应日期的文件里</h3>
@@ -1428,6 +1499,65 @@
               <p>有了模板之后撰写论文其实并不需要多少语法知识，只需要根据需求对模板中的语法进行复制粘贴即可，如果有额外的需求需要对语法进行学习，推荐以下视频教程：</p>
               ${createCard("https://www.bilibili.com/video/BV1Mc411S75c", "SOURCE_URL", "LATEX教程 / BILIBILI", "bilibili")}
           `,
+        在本地部署Qwen模型: `
+              <h3>本地部署开源模型</h3>
+              <p>以Qwen3-4B模型为例，只需要在IDE中运行已下代码，若回复正常打印则成功部署，模型文件较大，注意留足磁盘空间。</p>
+          <pre class="line-numbers language-python" data-language="Python">
+<code>from modelscope import snapshot_download
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+
+print("正在从国内源检查/下载模型...")
+model_dir = snapshot_download('qwen/Qwen3-4B')
+print(f"模型路径: {model_dir}")
+
+tokenizer = AutoTokenizer.from_pretrained(
+    model_dir, 
+    use_fast=False, 
+    trust_remote_code=True
+)
+
+model = AutoModelForCausalLM.from_pretrained(
+    model_dir,
+    torch_dtype="auto", 
+    device_map="auto",
+    trust_remote_code=True
+)
+
+prompt = "介绍一下你自己"
+messages = [
+    {"role": "user", "content": prompt}
+]
+
+text = tokenizer.apply_chat_template(
+    messages,
+    tokenize=False,
+    add_generation_prompt=True,
+    enable_thinking=True 
+)
+model_inputs = tokenizer([text], return_tensors="pt").to(model.device)
+
+print("正在生成回复...")
+generated_ids = model.generate(
+    **model_inputs,
+    max_new_tokens=32768
+)
+output_ids = generated_ids[0][len(model_inputs.input_ids[0]):].tolist() 
+
+try:
+    stop_token_id = tokenizer.convert_tokens_to_ids("</think>")
+    index = len(output_ids) - output_ids[::-1].index(stop_token_id)
+except ValueError:
+    index = 0
+
+thinking_content = tokenizer.decode(output_ids[:index], skip_special_tokens=True).strip("\n")
+content = tokenizer.decode(output_ids[index:], skip_special_tokens=True).strip("\n")
+
+print("\n" + "="*20 + " 结果输出 " + "="*20)
+print("thinking content:", thinking_content)
+print("content:", content)
+                  </code></pre>
+        `,
       };
 
       function typeWriter(text, element, speed = 50) {
@@ -1456,16 +1586,22 @@
         // --- 优化点 1: 清除上一篇残留的过渡效果 ---
         bodyEl.style.transition = "none";
         bodyEl.style.opacity = "0";
-        // 强制重绘，确保 opacity: 0 立即生效
         void bodyEl.offsetWidth;
 
+        // 注入文章内容
         bodyEl.innerHTML = articles[title] || "CONTENT_NOT_FOUND";
 
+        // --- 核心改动：立即执行高亮渲染 ---
+        // 即使 bodyEl 现在是透明的，我们也可以让 Prism 先把活干了
+        if (window.Prism) {
+          Prism.highlightAllUnder(bodyEl);
+        }
+
         setTimeout(() => {
-          // --- 优化点 2: 稍微拉长一点点时间，等标题打几个字再显示卡片 ---
+          // --- 优化点 2: 显示内容 ---
           bodyEl.style.transition = "opacity 0.8s ease-out";
           bodyEl.style.opacity = "1";
-        }, 300); // 300-500ms 均可，配合你的视觉节奏
+        }, 300);
 
         window.scrollTo(0, 0);
       }
