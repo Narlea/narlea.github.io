@@ -1,5 +1,5 @@
 <h3>本地部署开源模型</h3>
-<p>以Qwen3-4B模型为例，只需要在IDE中运行已下代码，若回复正常打印则成功部署，模型文件较大，注意留足磁盘空间。</p>
+<p>以Qwen3-4B模型为例，只需要在IDE中运行已下代码，若回复正常打印则成功部署，模型文件较大（大概要7.5GB），注意留足磁盘空间。</p>
 <pre class="line-numbers language-python" data-language="Python">
 <code>from modelscope import snapshot_download
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -53,5 +53,5 @@ content = tokenizer.decode(output_ids[index:], skip_special_tokens=True).strip("
 
 print("\n" + "="*20 + " 结果输出 " + "="*20)
 print("thinking content:", thinking_content)
-print("content:", content)
-                  </code></pre>
+print("content:", content)</code></pre>
+默认的下载路径为`C:\Users\用户名\.cache\modelscope\hub`，可以在代码中指定`cache_dir`参数来修改下载路径。
