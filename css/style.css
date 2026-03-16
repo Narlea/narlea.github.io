@@ -1,3 +1,15 @@
+/* 让 Jupyter 的输出区域也变透明/暗色 */
+.output_area pre {
+    background: rgba(0, 0, 0, 0.3) !important;
+    color: #00f2ff !important;
+    border: none !important;
+}
+
+/* 如果有图片输出（Matplotlib） */
+.output_png img {
+    filter: hue-rotate(180deg) brightness(0.8) contrast(1.2); /* 稍微滤镜处理适配赛博风 */
+    border: 1px solid rgba(0, 242, 255, 0.2);
+}
 /* 容器设计：外框 */
 pre[class*="language-"] {
 background: rgba(2, 8, 13, 0.95) !important;
