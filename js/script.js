@@ -369,6 +369,7 @@ Personal_Blog: "articles/web_frontend1.html",
 SVG图标: "articles/web_frontend2.html",
 LATEX基础教程: "articles/latex1.html",
 在本地部署Qwen模型: "articles/llm1.html",
+"2025数模国赛C题": "articles/data_analysis1.html",
 };
 
 function typeWriter(text, element, speed = 50) {
@@ -423,6 +424,17 @@ try {
 
     // 注入处理后的真正 HTML
     bodyEl.innerHTML = htmlContent;
+    // --- Jupyter 高亮补丁 ---
+// 1. 找到所有 Jupyter 转换出来的 pre 标签
+const jupyterCodes = bodyEl.querySelectorAll('.highlight pre');
+jupyterCodes.forEach(code => {
+    // 2. 强行注入 Prism 需要的类名（假设是 python）
+    code.classList.add('language-python');
+    // 3. 包装一层 <code> 标签（Prism 的标准规范）
+    if (!code.querySelector('code')) {
+        code.innerHTML = `<code>${code.innerHTML}</code>`;
+    }
+});
 
     // 触发代码高亮
     if (window.Prism) {
