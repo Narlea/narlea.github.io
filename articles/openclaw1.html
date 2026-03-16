@@ -1,0 +1,7 @@
+<h3>1.log未能存储在对应日期的文件里</h3>
+<p>如3月6日的log应存在openclaw-2026-03-06.log文件中，实测中却发现log存在了openclaw-2026-03-05.log中，该问题直到手动重启gateway才会得到缓解</p>
+${createCard("https://github.com/openclaw/openclaw/issues/37388", "ISSUES_URL", "OPENCLAW / ISSUES", "github")}
+<h3>2.在预期时间之后手动启动一次性定时重启任务会导致gateway无限重启循环</h3>
+<p>使用cron布置对应时刻执行的第一性定时重启任务时，如果在所定时刻之后手动启动该任务，会导致gateway不断被重启，任务不会主动结束。</p>
+${createCard("https://github.com/openclaw/openclaw/issues/37198", "ISSUES_URL", "OPENCLAW / ISSUES", "github")}
+<p>OS:macOS (Mac mini)</p>
