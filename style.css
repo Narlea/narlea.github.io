@@ -1,0 +1,514 @@
+/* 容器设计：外框 */
+pre[class*="language-"] {
+background: rgba(2, 8, 13, 0.95) !important;
+border: 1px solid rgba(0, 242, 255, 0.2);
+border-left: 3px solid #00f2ff;
+box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+padding: 1.5em 1em 1em 1em;
+margin: 20px 0;
+position: relative;
+border-radius: 2px;
+}
+
+/* 右上角的语言标记 */
+pre[class*="language-"]::before {
+content: "CODE_BLOCK // " attr(data-language);
+position: absolute;
+top: 0;
+right: 15px;
+background: rgba(0, 242, 255, 0.1);
+color: #00f2ff;
+font-size: 10px;
+padding: 2px 8px;
+font-family: monospace;
+letter-spacing: 1px;
+}
+
+/* 行号颜色调整 */
+.line-numbers .line-numbers-rows {
+border-right: 1px solid rgba(0, 242, 255, 0.1) !important;
+}
+
+/* 语法高亮微调：让青色更亮 */
+.token.function,
+.token.keyword {
+color: #00f2ff !important;
+text-shadow: 0 0 5px rgba(0, 242, 255, 0.5);
+}
+#visualizer-canvas {
+filter: blur(0.5px) drop-shadow(0 0 5px rgba(0, 242, 255, 0.5));
+}
+/* 让原生滑动条变细线 */
+#volume-slider::-webkit-slider-runnable-track {
+height: 2px;
+background: rgba(0, 242, 255, 0.2);
+}
+#volume-slider::-webkit-slider-thumb {
+appearance: none;
+width: 6px;
+height: 6px;
+background: var(--neon-blue);
+border-radius: 50%;
+margin-top: -2px;
+box-shadow: 0 0 5px var(--neon-blue);
+}
+/* 播放器内的 nav-link 微调：去掉默认下划线，确保间距统一 */
+.playlist-item {
+cursor: pointer;
+padding: 8px 12px !important;
+font-size: 11px !important;
+border-bottom: 1px solid rgba(0, 217, 255, 0.05);
+}
+
+/* 滚动条照抄你全站的极细风格 */
+.playlist-scroll-area::-webkit-scrollbar {
+width: 2px;
+}
+.playlist-scroll-area::-webkit-scrollbar-thumb {
+background: var(--neon-blue);
+}
+/* 赛博链接卡片基础样式 */
+.cyber-link-card {
+display: block;
+position: relative;
+max-width: 450px;
+margin: 30px 0;
+padding: 2px;
+background: linear-gradient(
+135deg,
+var(--neon-blue) 0%,
+transparent 40%,
+var(--neon-blue) 100%
+);
+text-decoration: none;
+clip-path: polygon(0 0, 95% 0, 100% 25%, 100% 100%, 5% 100%, 0 75%);
+transition: all 0.3s ease;
+}
+.cyber-link-card:hover {
+transform: scale(1.02) translateX(10px);
+box-shadow: -5px 0 20px rgba(0, 217, 255, 0.4);
+}
+.card-inner {
+background: #03140b;
+padding: 20px;
+display: flex;
+align-items: center;
+gap: 20px;
+clip-path: polygon(0 0, 95% 0, 100% 25%, 100% 100%, 5% 100%, 0 75%);
+border: 1px solid rgba(0, 217, 255, 0.1);
+}
+.link-icon {
+color: var(--neon-blue);
+width: 40px;
+height: 40px;
+filter: drop-shadow(0 0 5px var(--neon-blue));
+}
+.link-text {
+display: flex;
+flex-direction: column;
+flex-grow: 1;
+}
+.link-text .label {
+font-size: 10px;
+color: var(--text-dim);
+letter-spacing: 2px;
+}
+.link-text .title {
+font-size: 18px;
+color: var(--text-cyan);
+font-weight: bold;
+margin: 4px 0;
+}
+.link-text .status {
+font-size: 10px;
+color: #00ff88;
+display: flex;
+align-items: center;
+gap: 5px;
+}
+.pulse-dot {
+width: 6px;
+height: 6px;
+background: #00ff88;
+border-radius: 50%;
+animation: pulse-anim 1.5s infinite;
+}
+.link-arrow {
+position: relative;
+width: 30px;
+height: 20px;
+display: flex;
+align-items: center;
+}
+.arrow-line {
+width: 100%;
+height: 2px;
+background: var(--neon-blue);
+transform-origin: right;
+transition: 0.3s;
+}
+.cyber-link-card:hover .arrow-line {
+width: 120%;
+}
+@keyframes pulse-anim {
+0% {
+box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7);
+}
+70% {
+box-shadow: 0 0 0 10px rgba(0, 255, 136, 0);
+}
+100% {
+box-shadow: 0 0 0 0 rgba(0, 255, 136, 0);
+}
+}
+
+:root {
+--bg-dark: #020508;
+--panel-bg: rgba(6, 12, 20, 0.85);
+--neon-blue: #00d9ff;
+--neon-glow: 0 0 15px rgba(0, 217, 255, 0.4);
+--text-cyan: #a0eaff;
+--text-dim: #5c7d8a;
+/* 闸门背景色：深绿环氧树脂 */
+--gate-bg: #03140b;
+/* 闸门线条色：金色 */
+--gate-line: #bda06d;
+}
+
+* {
+box-sizing: border-box;
+}
+
+/* --- 核心：进入特效（闸门与充能） --- */
+#boot-gate {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+z-index: 9999;
+display: flex;
+overflow: hidden; /* 用于闸门分割 */
+}
+
+/* 闸门的两半 */
+.gate-half {
+width: 50%;
+height: 100%;
+background-color: var(--gate-bg);
+/* 深绿色纹理背景 */
+background-image:
+linear-gradient(rgba(189, 160, 109, 0.03) 1px, transparent 1px),
+linear-gradient(90deg, rgba(189, 160, 109, 0.03) 1px, transparent 1px);
+background-size: 80px 80px;
+position: relative;
+transition: transform 1.2s cubic-bezier(0.7, 0, 0.3, 1) 1.5s; /* 充能后延迟分割 */
+display: flex;
+justify-content: center;
+align-items: center;
+}
+
+/* 左闸门向左滑，右闸门向右滑 */
+#gate-left {
+transform: translateX(0);
+border-right: 2px solid var(--gate-line);
+}
+#gate-right {
+transform: translateX(0);
+border-left: 2px solid var(--gate-line);
+}
+
+#boot-gate.opened #gate-left {
+transform: translateX(-100%);
+}
+#boot-gate.opened #gate-right {
+transform: translateX(100%);
+}
+
+/* SVG 样式：在两扇闸门上分别对齐 */
+.circuit-svg {
+position: absolute;
+top: 50%;
+width: 150%;
+height: auto; /* 横跨两半区域 */
+filter: drop-shadow(0 0 3px rgba(189, 160, 109, 0.5)); /* 金色发光 */
+}
+
+#gate-left .circuit-svg {
+right: 0; /* 对齐到中间缝隙 */
+transform: translateY(-50%) scaleX(-1); /* 镜像，让充能从左到右 */
+}
+#gate-right .circuit-svg {
+left: 0; /* 对齐到中间缝隙 */
+transform: translateY(-50%); /* 正常，让充能从右到左 */
+}
+
+/* 基础金丝线条样式 */
+.pcb-trace {
+fill: none;
+stroke: var(--gate-line); /* 默认金色 */
+stroke-width: 2.5;
+stroke-linecap: round;
+stroke-dasharray: 1200;
+stroke-dashoffset: 1200;
+}
+
+/* 金色焊盘（圆圈） */
+.pcb-pad {
+fill: var(--gate-bg);
+stroke: var(--gate-line);
+stroke-width: 2.5;
+transition:
+stroke 0.3s,
+fill 0.3s,
+filter 0.3s;
+filter: drop-shadow(0 0 3px rgba(189, 160, 109, 0.5));
+}
+
+/* 蓝色霓虹充能线条 */
+.pcb-trace.charging {
+animation: circuit-trace 4s ease-in-out forwards;
+}
+
+/* 蓝色激活焊盘 */
+.pcb-pad.active {
+stroke: var(--neon-blue); /* 变为蓝色 */
+fill: #fff; /* 内部变为白色，增强亮度 */
+filter: drop-shadow(0 0 10px var(--neon-blue));
+}
+
+/* 充能动画 */
+@keyframes circuit-trace {
+0% {
+stroke: var(--gate-line);
+stroke-dashoffset: 1200;
+}
+10% {
+stroke: var(--neon-blue);
+} /* 开始流动时变为蓝色 */
+100% {
+stroke: var(--neon-blue);
+stroke-dashoffset: 0;
+}
+}
+
+/* 主容器终端扫描展开动画 */
+.container {
+display: grid;
+grid-template-columns: 280px 1fr 300px;
+gap: 20px;
+width: 100%;
+max-width: 1400px;
+z-index: 1;
+opacity: 0;
+transform: scale(1.02);
+transition: all 1.5s cubic-bezier(0.19, 1, 0.22, 1) 2s; /* 闸门开启后扫描 */
+clip-path: inset(50% 50% 50% 50%); /* 初始扫描状态 */
+}
+
+.container.loaded {
+opacity: 1;
+transform: scale(1);
+clip-path: inset(0 0 0 0); /* 展开状态 */
+}
+
+/* --- 基础样式（赛博风） --- */
+body {
+background-color: var(--bg-dark);
+background-image:
+linear-gradient(rgba(0, 217, 255, 0.03) 1px, transparent 1px),
+linear-gradient(90deg, rgba(0, 217, 255, 0.03) 1px, transparent 1px);
+background-size: 30px 30px;
+color: var(--text-cyan);
+font-family: "Consolas", "Monaco", "Microsoft YaHei", monospace;
+margin: 0;
+display: flex;
+justify-content: center;
+padding: 20px;
+min-height: 100vh;
+overflow-x: hidden;
+background-size: 30px 30px;
+transition: background-size 0.1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 扫描线动画 */
+body::before {
+content: " ";
+position: fixed;
+top: 0;
+left: 0;
+bottom: 0;
+right: 0;
+background:
+linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+linear-gradient(
+90deg,
+rgba(255, 0, 0, 0.06),
+rgba(0, 255, 0, 0.02),
+rgba(0, 0, 255, 0.06)
+);
+background-size:
+100% 2px,
+3px 100%;
+z-index: 10;
+pointer-events: none;
+opacity: 0.3;
+}
+
+.card {
+background: var(--panel-bg);
+border: 1px solid rgba(0, 217, 255, 0.2);
+backdrop-filter: blur(8px);
+box-shadow: var(--neon-glow);
+padding: 20px;
+margin-bottom: 20px;
+position: relative;
+}
+
+.card::after {
+content: "";
+position: absolute;
+bottom: -1px;
+right: -1px;
+width: 20px;
+height: 20px;
+background: linear-gradient(
+135deg,
+transparent 50%,
+var(--neon-blue) 50%
+);
+clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+
+.profile {
+text-align: center;
+padding: 20px 0;
+}
+.avatar-wrap {
+width: 120px;
+height: 120px;
+margin: 0 auto 15px;
+border: 2px solid var(--neon-blue);
+padding: 5px;
+border-radius: 50%;
+box-shadow: 0 0 20px rgba(0, 217, 255, 0.2);
+overflow: hidden;
+}
+.avatar-wrap img {
+width: 100%;
+height: 100%;
+border-radius: 50%;
+object-fit: cover;
+}
+
+.nav-link {
+color: var(--text-cyan);
+text-decoration: none;
+display: block;
+padding: 12px;
+margin: 5px 0;
+border-left: 2px solid transparent;
+transition: 0.3s;
+font-size: 14px;
+}
+.nav-link:hover {
+background: rgba(0, 217, 255, 0.1);
+border-left: 2px solid var(--neon-blue);
+text-shadow: 0 0 8px var(--neon-blue);
+}
+
+#post-detail {
+display: none;
+}
+.system-msg {
+border-left: 4px solid var(--neon-blue);
+background: rgba(0, 217, 255, 0.05);
+padding: 15px;
+margin-bottom: 30px;
+}
+.post-title {
+color: var(--neon-blue);
+font-size: 22px;
+margin: 0 0 10px 0;
+text-transform: uppercase;
+letter-spacing: 1px;
+}
+.post-meta {
+font-size: 12px;
+color: var(--text-dim);
+margin-bottom: 15px;
+}
+
+.btn-access {
+display: inline-block;
+border: 1px solid var(--neon-blue);
+padding: 8px 18px;
+color: var(--neon-blue);
+text-decoration: none;
+font-size: 12px;
+transition: 0.3s;
+background: transparent;
+cursor: pointer;
+}
+.btn-access:hover {
+background: var(--neon-blue);
+color: var(--bg-dark);
+box-shadow: 0 0 15px var(--neon-blue);
+}
+
+.typing::after {
+content: "|";
+animation: blink 0.7s infinite;
+}
+@keyframes blink {
+50% {
+opacity: 0;
+}
+}
+
+.content-body {
+line-height: 1.8;
+color: #fff;
+font-size: 15px;
+}
+.content-body h3 {
+color: var(--neon-blue);
+border-bottom: 1px solid rgba(0, 217, 255, 0.2);
+padding-bottom: 10px;
+margin-top: 25px;
+}
+.code-block {
+background: #000;
+padding: 15px;
+border: 1px dashed var(--neon-blue);
+font-family: monospace;
+color: #0f0;
+margin: 15px 0;
+overflow-x: auto;
+}
+.status-dot {
+width: 8px;
+height: 8px;
+background: #00ff88;
+border-radius: 50%;
+display: inline-block;
+margin-right: 8px;
+box-shadow: 0 0 10px #00ff88;
+}
+h3.sidebar-title {
+font-size: 14px;
+border-bottom: 1px solid rgba(0, 217, 255, 0.3);
+padding-bottom: 8px;
+margin-bottom: 15px;
+color: var(--neon-blue);
+}
+
+/* 过滤选中样式 */
+.filter-tag:hover {
+background: rgba(0, 217, 255, 0.2);
+}
+.filter-tag.active {
+background: var(--neon-blue);
+color: var(--bg-dark);
+box-shadow: 0 0 10px var(--neon-blue);
+}
