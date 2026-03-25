@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="zh-CN">
   <head>
+    <script src="https://assets.pyecharts.org/assets/v6/echarts.min.js"></script>
+    <script src="https://assets.pyecharts.org/assets/v6/echarts-liquidfill.min.js"></script>
     <meta charset="UTF-8" />
     <title>Narlea | Digital Terminal</title>
     <link
@@ -405,10 +407,22 @@
             </div>
           </div>
           <div class="card post-card" data-category="DATA_ANALYSIS">
-            <div class="post-meta">DATE: 2026.03.16 / CATEGORY: DATA_ANALYSIS</div>
+            <div class="post-meta">
+              DATE: 2026.03.16 / CATEGORY: DATA_ANALYSIS
+            </div>
             <h2 class="post-title">2025数模国赛C题</h2>
             <p>数模国赛C题源码公开...</p>
             <div class="btn-access" onclick="showDetail('2025数模国赛C题')">
+              ACCESS_DATA_
+            </div>
+          </div>
+          <div class="card post-card" data-category="DATA_ANALYSIS">
+            <div class="post-meta">
+              DATE: 2026.03.20 / CATEGORY: DATA_VISUALIZATION
+            </div>
+            <h2 class="post-title">使用pyecharts进行数据可视化</h2>
+            <p>使用pyecharts进行数据可视化的方法...</p>
+            <div class="btn-access" onclick="showDetail('使用pyecharts进行数据可视化')">
               ACCESS_DATA_
             </div>
           </div>
@@ -522,14 +536,14 @@
             >
             <span
               class="filter-tag"
-              onclick="filterPosts('DBMS', this)"
+              onclick="filterPosts('DATABASE', this)"
               style="
                 border: 1px solid rgba(0, 217, 255, 0.4);
                 padding: 4px 8px;
                 font-size: 11px;
                 cursor: pointer;
               "
-              ># DBMS</span
+              ># DATABASE</span
             >
             <span
               class="filter-tag"
@@ -574,6 +588,17 @@
                 cursor: pointer;
               "
               ># DATA_ANALYSIS</span
+            >
+            <span
+              class="filter-tag"
+              onclick="filterPosts('DATA_VISUALIZATION', this)"
+              style="
+                border: 1px solid rgba(0, 217, 255, 0.4);
+                padding: 4px 8px;
+                font-size: 11px;
+                cursor: pointer;
+              "
+              ># DATA_VISUALIZATION</span
             >
           </div>
         </div>
