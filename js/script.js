@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", function () {
 const postList = document.getElementById("post-list");
 // 获取所有的文章卡片（排除系统欢迎词，如果你想让欢迎词永远在第一位）
@@ -370,6 +369,7 @@ SVG图标: "articles/web_frontend2.html",
 LATEX基础教程: "articles/latex1.html",
 在本地部署Qwen模型: "articles/llm1.html",
 "2025数模国赛C题": "articles/data_analysis1.html",
+使用pyecharts进行数据可视化: "articles/data_visualization1.html",
 };
 
 function typeWriter(text, element, speed = 50) {
@@ -384,72 +384,81 @@ function type() {
 }
 type();
 }
-
 async function showDetail(title) {
-updateStats(true);
-document.getElementById("post-list").style.display = "none";
-document.getElementById("post-detail").style.display = "block";
+    updateStats(true);
+    document.getElementById("post-list").style.display = "none";
+    document.getElementById("post-detail").style.display = "block";
 
-const titleEl = document.getElementById("detail-title");
-typeWriter(title, titleEl, 70);
+    const titleEl = document.getElementById("detail-title");
+    typeWriter(title, titleEl, 70);
 
-const bodyEl = document.getElementById("detail-body");
-const filePath = articles[title];
+    const bodyEl = document.getElementById("detail-body");
+    const filePath = articles[title];
 
-bodyEl.style.transition = "none";
-bodyEl.style.opacity = "0";
-bodyEl.innerHTML = "<p>LOADING_SYSTEM_DATA...</p>";
+    bodyEl.style.transition = "none";
+    bodyEl.style.opacity = "0";
+    bodyEl.innerHTML = "<p>LOADING_SYSTEM_DATA...</p>";
 
-try {
-    const response = await fetch(filePath);
-    if (!response.ok) throw new Error("FILE_NOT_FOUND");
+    try {
+        const response = await fetch(filePath);
+        if (!response.ok) throw new Error("FILE_NOT_FOUND");
 
-    let htmlContent = await response.text();
+        let htmlContent = await response.text();
 
-    // --- 【核心修复：对所有动态脚本生效】 ---
-    // 这里的正则会匹配文本中所有的 ${createCard(...)}
-    // 并将其替换为真正运行 createCard() 后生成的 HTML 字符串
-    htmlContent = htmlContent.replace(
-    /\${createCard\((.*?)\)}/g,
-    (match, args) => {
-        try {
-        // 使用 Function 动态执行当前的 createCard 函数
-        return new Function(`return createCard(${args})`)();
-        } catch (e) {
-        console.error("解析内置组件失败:", e);
-        return match; // 出错则保留原样，方便排查
+        // --- 【核心修复：对所有动态脚本生效】 ---
+        htmlContent = htmlContent.replace(
+            /\${createCard\((.*?)\)}/g,
+            (match, args) => {
+                try {
+                    return new Function(`return createCard(${args})`)();
+                } catch (e) {
+                    console.error("解析内置组件失败:", e);
+                    return match;
+                }
+            },
+        );
+
+        // 注入处理后的真正 HTML
+        bodyEl.innerHTML = htmlContent;
+
+        // --- Jupyter 高亮补丁 ---
+        const jupyterCodes = bodyEl.querySelectorAll('.highlight pre');
+        jupyterCodes.forEach(code => {
+            code.classList.add('language-python');
+            if (!code.querySelector('code')) {
+                code.innerHTML = `<code>${code.innerHTML}</code>`;
+            }
+        });
+
+        // --- 【新增：激活 HTML 中的脚本（解决水滴图不显示问题）】 ---
+        // 必须手动创建并插入 script 标签，浏览器才会执行其中的 JS
+        const scripts = bodyEl.querySelectorAll('script');
+        scripts.forEach(oldScript => {
+            const newScript = document.createElement("script");
+            // 复制属性
+            Array.from(oldScript.attributes).forEach(attr => {
+                newScript.setAttribute(attr.name, attr.value);
+            });
+            // 复制内容并插入
+            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+            // 插入到 head 运行，随后移除以保持 DOM 简洁
+            document.head.appendChild(newScript).parentNode.removeChild(newScript);
+        });
+
+        // 触发代码高亮
+        if (window.Prism) {
+            Prism.highlightAllUnder(bodyEl);
         }
-    },
-    );
-
-    // 注入处理后的真正 HTML
-    bodyEl.innerHTML = htmlContent;
-    // --- Jupyter 高亮补丁 ---
-// 1. 找到所有 Jupyter 转换出来的 pre 标签
-const jupyterCodes = bodyEl.querySelectorAll('.highlight pre');
-jupyterCodes.forEach(code => {
-    // 2. 强行注入 Prism 需要的类名（假设是 python）
-    code.classList.add('language-python');
-    // 3. 包装一层 <code> 标签（Prism 的标准规范）
-    if (!code.querySelector('code')) {
-        code.innerHTML = `<code>${code.innerHTML}</code>`;
+    } catch (error) {
+        bodyEl.innerHTML = `<p style="color:red">ERROR: FAILED_TO_FETCH_DATA [${filePath}]</p>`;
     }
-});
 
-    // 触发代码高亮
-    if (window.Prism) {
-    Prism.highlightAllUnder(bodyEl);
-    }
-} catch (error) {
-    bodyEl.innerHTML = `<p style="color:red">ERROR: FAILED_TO_FETCH_DATA [${filePath}]</p>`;
-}
+    setTimeout(() => {
+        bodyEl.style.transition = "opacity 0.8s ease-out";
+        bodyEl.style.opacity = "1";
+    }, 300);
 
-setTimeout(() => {
-    bodyEl.style.transition = "opacity 0.8s ease-out";
-    bodyEl.style.opacity = "1";
-}, 300);
-
-window.scrollTo(0, 0);
+    window.scrollTo(0, 0);
 }
 
 function showHome() {
