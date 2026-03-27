@@ -369,8 +369,8 @@ SVG图标: "articles/web_frontend2.html",
 LATEX基础教程: "articles/latex1.html",
 在本地部署Qwen模型: "articles/llm1.html",
 "2025数模国赛C题": "articles/data_analysis1.html",
-使用pyecharts进行数据可视化: "articles/data_visualization1.html",
-通过蒙特卡洛实验计算Π值: "articles/data_visualization2.html",
+使用pyecharts进行数据可视化: "articles/data_analysis2.html",
+通过蒙特卡洛实验计算Π值: "articles/data_analysis3.html",
 };
 
 function typeWriter(text, element, speed = 50) {
