@@ -1,0 +1,19 @@
+<p>时间复杂度：O(n)</p>
+<p>空间复杂度：O(n)</p>
+<p>实现原理：从 2 开始，将每个质数的倍数标记为合数（埃氏筛），在此基础之上通过取模运算确保确保每个合数只会被它的“最小质因子”筛掉。</p>
+<h3>源码</h3>
+<pre class="line-numbers language-python" data-language="Python">
+<code>def linear_sieve(n):
+    is_prime = [True] * (n + 1)
+    primes = []
+    for i in range(2, n + 1):
+        if is_prime[i]:
+            primes.append(i)
+        for p in primes:
+            if i * p > n:
+                break
+            is_prime[i * p] = False
+            if i % p == 0:
+                break
+    return primes
+print(linear_sieve(100))</code></pre>
