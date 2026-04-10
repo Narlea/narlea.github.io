@@ -1,0 +1,50 @@
+<pre class="line-numbers language-javascript" data-language="json">
+    <code>"channels": {
+    "feishu": {
+      "enabled": true,
+      "domain": "feishu",
+      "defaultAccount": "main",  
+      "groupPolicy": "open",
+      "dmPolicy": "open",
+      "allowFrom": ["*"],
+      "accounts": {
+        "main": {
+          "appId": "*****************",
+          "appSecret": "***************************"
+        }
+      },
+      "groups": {
+        "*": {
+          "requireMention": true
+        }
+      }
+    }
+  },</code>
+    </pre>
+<p>"defaultAccount": "main"该写法在2026.4.x版本中无效，必须在account中单独配置default账号才能生效</p>
+<pre class="line-numbers language-javascript" data-language="json">
+    <code>"channels": {
+    "feishu": {
+      "enabled": true,
+      "domain": "feishu",
+      "groupPolicy": "open",
+      "dmPolicy": "open",
+      "allowFrom": ["*"],
+      "accounts": {
+        "main": {
+          "appId": "*****************",
+          "appSecret": "***************************"
+        },
+        "default": {                                 
+          "appId": "*****************",
+          "appSecret": "***************************"
+        }
+      },
+      "groups": {
+        "*": {
+          "requireMention": true
+        }
+      }
+    }
+  },</code>
+    </pre>
