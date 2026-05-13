@@ -1,0 +1,159 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/lib/marked.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-cpp.min.js"></script>
+
+<style>
+    /* --- 1. 精准修复：全局白条消失术 --- */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #051015; }
+    ::-webkit-scrollbar-thumb { background: rgba(0, 242, 255, 0.2); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #00f2ff; }
+
+    /* --- 原有 UI 保持不变 --- */
+    .markdown-body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        line-height: 1.6;
+        word-wrap: break-word;
+    }
+
+    .markdown-body pre {
+        background: rgba(0, 20, 30, 0.7) !important;
+        border: 1px solid rgba(0, 242, 255, 0.2) !important;
+        padding: 1.2em !important;
+        border-radius: 8px;
+        overflow: auto;
+        margin: 1.5em 0;
+    }
+
+    .katex-display {
+        margin: 1.5em 0 !important;
+        padding: 10px 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        color: #00f2ff;
+    }
+
+    .katex { font-size: 1.1em; }
+
+    .markdown-body p, .markdown-body ul, .markdown-body ol {
+        margin-top: 0;
+        margin-bottom: 16px;
+    }
+
+    .markdown-body pre::-webkit-scrollbar { height: 5px; width: 5px; }
+    .markdown-body pre::-webkit-scrollbar-thumb { background: rgba(0, 242, 255, 0.3); border-radius: 10px; }
+
+    @keyframes flash-sync {
+        0% { background: rgba(0, 242, 255, 0.2); }
+        100% { background: transparent; }
+    }
+    .flash-active { animation: flash-sync 0.4s ease-out; }
+</style>
+
+<div class="card" style="border: 1px solid var(--neon-blue); min-height: 700px; background: #051015; box-shadow: inset 0 0 20px rgba(0, 242, 255, 0.05);">
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid rgba(0, 242, 255, 0.1);">
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-access" onclick="handleExitList()">[ 返回主控台 ] RET_HOME</button>
+            <button id="compile-btn" class="btn-access" onclick="window.compileMarkdown()" style="border-color: #00ff88; color: #00ff88; font-weight: bold;">
+                [ 执行编译 ] RUN_COMPILER
+            </button>
+        </div>
+        <div id="md-status" style="font-family: monospace; font-size: 10px; color: var(--neon-blue); opacity: 0.8;">
+            KERNEL_READY // AWAITING_CMD
+        </div>
+    </div>
+
+    <div class="md-workspace" style="display: flex; height: calc(100vh - 300px);">
+        <div style="flex: 1; border-right: 1px solid rgba(0, 242, 255, 0.1); display: flex; flex-direction: column;">
+            <div style="font-size: 9px; color: #555; padding: 5px 15px;">>> SRC_STREAM</div>
+            <textarea id="md-input" spellcheck="false" 
+                style="flex: 1; background: transparent; border: none; color: #a0eaff; padding: 15px; font-family: 'Consolas', 'Monaco', monospace; outline: none; resize: none; line-height: 1.6;"></textarea>
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; background: rgba(0, 242, 255, 0.01);">
+            <div style="font-size: 9px; color: var(--neon-blue); padding: 5px 15px; opacity: 0.5;">>> RENDER_OUTPUT</div>
+            <div id="md-preview" class="markdown-body" style="flex: 1; padding: 20px; overflow-y: auto; color: #d1dce5;">
+                <div style="height: 100%; display: flex; align-items: center; justify-content: center; color: rgba(0, 242, 255, 0.1); font-family: monospace;">
+                    [ 等待内核注入... ]
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.marked = window.marked || (typeof marked !== 'undefined' ? marked : null);
+    window.katex = window.katex || (typeof katex !== 'undefined' ? katex : null);
+
+    function preProcessLaTeX(text) {
+        return text.replace(/\$\$([\s\S]*?)\$\$/g, (match, formula) => {
+            return '<div class="katex-block-target">' + formula + '</div>';
+        }).replace(/\$([\s\S]*?)\$/g, (match, formula) => {
+            return '<span class="katex-inline-target">' + formula + '</span>';
+        });
+    }
+
+    window.compileMarkdown = async function() {
+        const input = document.getElementById('md-input');
+        const preview = document.getElementById('md-preview');
+        const status = document.getElementById('md-status');
+
+        if (!input || !preview) return;
+        let rawText = input.value;
+
+        status.innerText = "LINKING_KERNELS...";
+
+        try {
+            let protectedText = preProcessLaTeX(rawText);
+            marked.setOptions({ breaks: true, gfm: true });
+            let htmlContent = marked.parse(protectedText);
+            preview.innerHTML = htmlContent;
+
+            preview.querySelectorAll('.katex-block-target').forEach(el => {
+                try {
+                    katex.render(el.innerText, el, { displayMode: true, throwOnError: false });
+                } catch (e) { console.error(e); }
+            });
+            preview.querySelectorAll('.katex-inline-target').forEach(el => {
+                try {
+                    katex.render(el.innerText, el, { displayMode: false, throwOnError: false });
+                } catch (e) { console.error(e); }
+            });
+
+            // --- 2. 精准修复：C++ 别名映射与高亮重绘 ---
+            if (window.Prism) {
+                // 确保 CUDA/C++ 的常用写法都能被识别
+                Prism.languages.cuda = Prism.languages.cpp; 
+                Prism.highlightAllUnder(preview);
+            }
+
+            status.innerText = "SUCCESS // KERNEL_STABLE";
+            localStorage.setItem('MD_PERSIST_CACHE', rawText);
+
+        } catch (e) {
+            console.error(e);
+            status.innerText = "RUNTIME_ERROR";
+        }
+    };
+</script>
+
+<style>
+    .katex-block-target { 
+        display: block; 
+        margin: 1.5em 0; 
+        text-align: center; 
+        color: #00f2ff;
+        overflow-x: auto;
+    }
+    .katex-inline-target {
+        padding: 0 4px;
+        color: #00f2ff;
+    }
+    .markdown-body pre { background: rgba(0, 20, 30, 0.8) !important; border: 1px solid #00f2ff33 !important; }
+</style>

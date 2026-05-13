@@ -1,0 +1,176 @@
+<div class="card" style="border: 1px solid var(--neon-blue); min-height: 500px">
+  <div
+    style="
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    "
+  >
+    <button class="btn-access" onclick="handleExitList()">
+      [ 返回主控台 ] RET_HOME
+    </button>
+    <span
+      style="color: var(--neon-blue); font-size: 10px; font-family: monospace"
+    >
+      MODULE_HUB // V1.0.4
+    </span>
+  </div>
+
+  <div class="tools-grid">
+    <div class="tool-card" onclick="navigateToModule('tools/codec.html')">
+      <div
+        class="tool-icon-wrapper"
+        style="
+          width: 50px;
+          height: 50px;
+          color: var(--neon-blue);
+          margin-bottom: 10px;
+        "
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          style="width: 100%; height: 100%"
+        >
+          <rect x="2" y="6" width="7" height="12" stroke-width="1.2" />
+          <path d="M4 9h3M4 11.5h3M4 14h3" opacity="0.6" />
+          <path d="M9 12h6" stroke-width="1.2" />
+          <path
+            d="M10.5 10.5l-1.5 1.5 1.5 1.5M13.5 10.5l1.5 1.5-1.5 1.5"
+            stroke-width="1.2"
+          />
+          <rect x="15" y="6" width="7" height="12" stroke-width="1.2" />
+          <g opacity="1">
+            <rect
+              x="16.2"
+              y="8.5"
+              width="1.8"
+              height="2.5"
+              rx="0.4"
+              stroke-width="1"
+            />
+            <path d="M19.8 8.5v2.5" stroke-width="1" />
+          </g>
+          <g opacity="1">
+            <path d="M17.1 13.5v2.5" stroke-width="1" />
+            <rect
+              x="18.9"
+              y="13.5"
+              width="1.8"
+              height="2.5"
+              rx="0.4"
+              stroke-width="1"
+            />
+          </g>
+        </svg>
+      </div>
+      <div class="tool-name">CODEC_PROCESSOR</div>
+      <div
+        class="tool-desc"
+        style="
+          font-size: 0.75rem;
+          color: rgba(0, 242, 255, 0.6);
+          margin-top: 4px;
+        "
+      >
+        [ 编解码处理器 ]
+      </div>
+    </div>
+
+    <div class="tool-card" onclick="navigateToModule('tools/markdown.html')">
+      <div
+        class="tool-icon-wrapper"
+        style="
+          width: 50px;
+          height: 50px;
+          color: var(--neon-blue);
+          margin-bottom: 10px;
+        "
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          style="width: 100%; height: 100%"
+        >
+          <path
+            d="M4 4h16v16H4z"
+            stroke-width="0.5"
+            stroke-dasharray="2 2"
+            opacity="0.2"
+          />
+
+          <path d="M5 16V8l3 3 3-3v8" stroke-linecap="square" />
+          <path d="M14 8h3a3 3 0 0 1 0 8h-3V8z" />
+
+          <line
+            x1="5"
+            y1="19"
+            x2="19"
+            y2="19"
+            stroke-width="0.5"
+            opacity="0.4"
+          />
+          <circle cx="19" cy="19" r="0.5" fill="currentColor" />
+        </svg>
+      </div>
+      <div class="tool-name">MARKDOWN_RENDERER</div>
+      <div
+        class="tool-desc"
+        style="
+          font-size: 0.75rem;
+          color: rgba(0, 242, 255, 0.6);
+          margin-top: 4px;
+        "
+      >
+        [ MD在线编译 ]
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* 基础工具卡片样式保持不变 */
+  .disabled-slot {
+    opacity: 0.2;
+    cursor: not-allowed;
+  }
+  .tool-name {
+    margin-top: 15px;
+    font-size: 12px;
+    font-family: "Consolas", monospace;
+    color: var(--neon-blue);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .tool-desc {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    letter-spacing: 1px;
+    transition: color 0.3s ease;
+  }
+  .tool-card:hover .tool-desc {
+    color: var(--neon-blue) !important;
+    text-shadow: 0 0 5px var(--neon-blue);
+  }
+</style>
+
+<script>
+  // 核心：进入 List 时立即尝试隐藏右侧
+  (function () {
+    // 这里的 'focus-mode' 类名应与你主页 index.html 定义的 CSS 挂钩
+    document.body.classList.add("focus-mode");
+    console.log("[SYSTEM]: FOCUS_MODE_ACTIVE");
+  })();
+
+  function handleExitList() {
+    // 退出 List 时移除专注模式
+    document.body.classList.remove("focus-mode");
+    showHome(); // 调用你原有的返回主页函数
+  }
+</script>

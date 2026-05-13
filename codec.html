@@ -1,0 +1,175 @@
+<div class="card" style="border: 1px solid var(--neon-blue); min-height: 500px;">
+    <div style="margin-bottom: 20px;">
+        <button class="btn-access" onclick="showHome()">[ 返回主控台 ] RET_HOME</button>
+    </div>
+
+    <div class="codec-layout">
+        <div class="codec-sidebar">
+            <h3 class="sidebar-title" style="font-size: 11px; margin-bottom: 15px;">
+                <span class="status-dot"></span> [ 模式选择 ]
+            </h3>
+            <button class="method-btn active" data-mode="B64_ENC">BASE64_ENCODE</button>
+            <button class="method-btn" data-mode="B64_DEC">BASE64_DECODE</button>
+            <button class="method-btn" data-mode="HEX_ENC">HEX_ENCODE</button>
+            <button class="method-btn" data-mode="HEX_DEC">HEX_DECODE</button>
+            <button class="method-btn" data-mode="SHA1">SHA1_HASH</button>
+            <button class="method-btn" data-mode="SHA256">SHA256_HASH</button>
+            <button class="method-btn" data-mode="URL_ENC">URL_ENCODE</button>
+            <button class="method-btn" data-mode="URL_DEC">URL_DECODE</button>
+            <button class="method-btn" data-mode="MD5_HASH">MD5_CHECKSUM</button>
+            <button class="method-btn" data-mode="ROT13">ROT13_CIPHER</button>
+
+            <div class="status-box">
+                <span class="status-dot"></span>
+                <span class="status-text">SYSTEM_READY</span>
+            </div>
+        </div>
+
+        <div class="codec-main">
+            <div class="field-group">
+                <div class="post-meta" style="margin-bottom: 5px;">>> RAW_DATA_INPUT</div>
+                <textarea id="codec-input" spellcheck="false" placeholder="等待指令输入..."></textarea>
+            </div>
+
+            <button id="run-codec-btn" class="btn-access" style="width: 100%; margin: 15px 0;">
+                [ 执行转换任务 ] EXECUTE_TASK
+            </button>
+
+            <div class="field-group">
+                <div class="post-meta" style="margin-bottom: 5px; color: var(--neon-blue);">>> PROCESSED_OUTPUT</div>
+                <textarea id="codec-output" readonly spellcheck="false" placeholder="等待结果..."></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .codec-layout { display: flex; gap: 30px; }
+    .codec-sidebar { width: 180px; display: flex; flex-direction: column; gap: 10px; border-right: 1px solid rgba(0, 242, 255, 0.1); padding-right: 20px; }
+    .codec-main { flex-grow: 1; display: flex; flex-direction: column; }
+    
+    .method-btn {
+        background: rgba(0, 242, 255, 0.03);
+        border: 1px solid rgba(0, 242, 255, 0.1);
+        color: var(--text-dim);
+        padding: 10px;
+        font-size: 11px;
+        text-align: left;
+        cursor: pointer;
+        font-family: 'Consolas', monospace;
+    }
+    .method-btn.active { border-color: var(--neon-blue); color: var(--neon-blue); background: rgba(0, 242, 255, 0.1); }
+    
+    #codec-input, #codec-output {
+        width: 100%; height: 140px;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(0, 242, 255, 0.1);
+        color: #fff; padding: 12px;
+        font-family: 'Consolas', monospace;
+        resize: none; outline: none;
+    }
+    #codec-output { color: var(--neon-blue); }
+    .status-box { margin-top: auto; padding-top: 20px; display: flex; align-items: center; gap: 8px; }
+    .status-text { color: var(--neon-blue); font-size: 11px; font-family: monospace; }
+</style>
+
+<script>
+    (function(){
+        const input = document.getElementById('codec-input');
+        const output = document.getElementById('codec-output');
+        const btns = document.querySelectorAll('.method-btn');
+        const runBtn = document.getElementById('run-codec-btn');
+        let mode = 'B64_ENC';
+        
+        const encoder = new TextEncoder();
+        const decoder = new TextDecoder();
+
+        // 1. 输入框手动输入时清空输出
+        input.addEventListener('input', () => {
+            if (output.value !== "") output.value = "";
+        });
+
+        // 2. 模式切换逻辑：清空输出
+        btns.forEach(b => b.onclick = () => {
+            btns.forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            mode = b.dataset.mode;
+            output.value = ""; 
+        });
+
+        // 3. 核心执行逻辑
+        runBtn.onclick = async () => {
+            try {
+                // 【核心逻辑回归】：只要输出框有值（且不是报错），直接回填
+                const currentOutput = output.value.trim();
+                if (currentOutput && !currentOutput.startsWith(">>")) {
+                    input.value = currentOutput;
+                    
+                    // 视觉反馈：霓虹闪烁
+                    input.style.transition = "none";
+                    input.style.borderColor = "var(--neon-blue)";
+                    input.style.boxShadow = "0 0 15px var(--neon-blue)";
+                    setTimeout(() => {
+                        input.style.transition = "all 0.4s ease";
+                        input.style.borderColor = "rgba(0, 242, 255, 0.1)";
+                        input.style.boxShadow = "none";
+                    }, 200);
+                }
+
+                const val = input.value.trim();
+                if (!val) {
+                    output.value = ">> 等待数据输入...";
+                    return;
+                }
+
+                let result = "";
+
+                // 分发处理
+                switch (mode) {
+                    case 'B64_ENC':
+                        result = btoa(String.fromCharCode(...encoder.encode(val)));
+                        break;
+                    case 'B64_DEC':
+                        result = decoder.decode(Uint8Array.from(atob(val), c => c.charCodeAt(0)));
+                        break;
+                    case 'HEX_ENC':
+                        result = Array.from(encoder.encode(val))
+                            .map(b => b.toString(16).padStart(2, '0').toUpperCase())
+                            .join(' ');
+                        break;
+                    case 'HEX_DEC':
+                        const cleanHex = val.replace(/[^0-9A-Fa-f]/g, '');
+                        const bytes = new Uint8Array(cleanHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+                        result = decoder.decode(bytes);
+                        break;
+                    case 'URL_ENC':
+                        result = encodeURIComponent(val);
+                        break;
+                    case 'URL_DEC':
+                        result = decodeURIComponent(val);
+                        break;
+                    case 'UNICODE_ENC':
+                        result = val.replace(/./gs, c => "\\u" + c.charCodeAt(0).toString(16).padStart(4, '0'));
+                        break;
+                    case 'UNICODE_DEC':
+                        result = val.replace(/\\u([0-9a-fA-F]{4})/g, (match, grp) => String.fromCharCode(parseInt(grp, 16)));
+                        break;
+                    case 'SHA1':
+                    case 'SHA256':
+                    case 'SHA512':
+                        const algo = mode === 'SHA1' ? 'SHA-1' : (mode === 'SHA256' ? 'SHA-256' : 'SHA-512');
+                        const hashBuffer = await crypto.subtle.digest(algo, encoder.encode(val));
+                        result = Array.from(new Uint8Array(hashBuffer))
+                            .map(b => b.toString(16).padStart(2, '0')).join('');
+                        break;
+                }
+
+                output.value = result;
+
+            } catch(e) { 
+                output.value = ">> [系统错误]: 任务失败，请检查数据格式"; 
+                console.error("[CODEC_ERR]:", e);
+            }
+        };
+    })();
+</script>
