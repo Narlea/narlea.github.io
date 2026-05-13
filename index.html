@@ -137,7 +137,11 @@
           <a href="javascript:void(0)" onclick="showHome()" class="nav-link"
             >>> [ 主页 ] ROOT_HOME</a
           >
-          <a href="#" class="nav-link">>> [ 工具 ] TOOL_KIT</a>
+          <div class="nav-item" onclick="navigateToModule('tools/list.html')">
+            <span class="nav-link" style="cursor: pointer"
+              >>> [ 工具 ] TOOL_HUB</span
+            >
+          </div>
           <a href="#" class="nav-link">>> [ 归档 ] DATA_LOGS</a>
           <a href="#" class="nav-link">>> [ 关于 ] IDENTITY_INFO</a>
         </div>
@@ -423,7 +427,10 @@
             </div>
             <h2 class="post-title">使用pyecharts进行数据可视化</h2>
             <p>使用pyecharts进行数据可视化的方法...</p>
-            <div class="btn-access" onclick="showDetail('使用pyecharts进行数据可视化')">
+            <div
+              class="btn-access"
+              onclick="showDetail('使用pyecharts进行数据可视化')"
+            >
               ACCESS_DATA_
             </div>
           </div>
@@ -433,37 +440,43 @@
             </div>
             <h2 class="post-title">通过蒙特卡洛实验计算Π值</h2>
             <p>使用pyecharts进行蒙特卡洛实验计算Π值的数据可视化...</p>
-            <div class="btn-access" onclick="showDetail('通过蒙特卡洛实验计算Π值')">
+            <div
+              class="btn-access"
+              onclick="showDetail('通过蒙特卡洛实验计算Π值')"
+            >
               ACCESS_DATA_
             </div>
           </div>
           <div class="card post-card" data-category="ALGORITHM">
-            <div class="post-meta">
-              DATE: 2026.03.31 / CATEGORY: ALGORITHM
-            </div>
+            <div class="post-meta">DATE: 2026.03.31 / CATEGORY: ALGORITHM</div>
             <h2 class="post-title">素数筛选算法——欧拉筛</h2>
             <p>筛选素数的高效算法...</p>
-            <div class="btn-access" onclick="showDetail('素数筛选算法——欧拉筛')">
+            <div
+              class="btn-access"
+              onclick="showDetail('素数筛选算法——欧拉筛')"
+            >
               ACCESS_DATA_
             </div>
           </div>
           <div class="card post-card" data-category="ALGORITHM">
-            <div class="post-meta">
-              DATE: 2026.04.08 / CATEGORY: OPENCLAW
-            </div>
+            <div class="post-meta">DATE: 2026.04.08 / CATEGORY: OPENCLAW</div>
             <h2 class="post-title">Openclaw2026.4.x版本配置文件bug</h2>
             <p>一个Openclaw2026.4.x版本配置文件的bug...</p>
-            <div class="btn-access" onclick="showDetail('Openclaw2026.4.x版本配置文件bug')">
+            <div
+              class="btn-access"
+              onclick="showDetail('Openclaw2026.4.x版本配置文件bug')"
+            >
               ACCESS_DATA_
             </div>
           </div>
           <div class="card post-card" data-category="ALGORITHM">
-            <div class="post-meta">
-              DATE: 2026.04.24 / CATEGORY: OTHER
-            </div>
+            <div class="post-meta">DATE: 2026.04.24 / CATEGORY: OTHER</div>
             <h2 class="post-title">学习通如何越过仅可录入不可粘贴</h2>
             <p>关于学习通作业提交的实用技巧...</p>
-            <div class="btn-access" onclick="showDetail('学习通如何越过仅可录入不可粘贴')">
+            <div
+              class="btn-access"
+              onclick="showDetail('学习通如何越过仅可录入不可粘贴')"
+            >
               ACCESS_DATA_
             </div>
           </div>
@@ -478,7 +491,7 @@
             >
               << BACK_TO_LIST
             </div>
-            <h2 id="detail-title" class="post-title typing"></h2>
+            <h2 id="detail-title" class="post-title"></h2>
             <div class="post-meta">ID: 0x8F2 / SECURITY: LEVEL_4</div>
             <div id="detail-body" class="content-body"></div>
           </div>
